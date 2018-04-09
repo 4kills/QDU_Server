@@ -98,6 +98,7 @@ func checkCommands(s string, c, tcpC, dirC chan<- string) {
 			"\n/setPortWeb <port>\t\t- sets the web port. Set this second",
 			"\n/quit \t\t\t\t- exits the application w/ exit status 3",
 			"\n/info \t\t\t\t- returns information about the programm",
+			"\n\n- Be aware to port-forward to your server and to adjust firewall settings",
 			"\n-------------------------------------------------------------------------------\n\n")
 	case s == "/getDir":
 		fmt.Println(directory)
