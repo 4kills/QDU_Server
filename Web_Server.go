@@ -32,7 +32,7 @@ func webServer(pC, dirC <-chan string) {
 	router := mux.NewRouter()
 	router.HandleFunc(directoryWeb, handleRequest).Methods("GET")
 	if err := http.ListenAndServe(portWeb, router); err != nil {
-		fmt.Println("Web-Server crashed:\n", err)
+		fmt.Println("Web-Server crashed:\n", printTS(), err)
 		os.Exit(1)
 	}
 }
@@ -48,13 +48,13 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// schreibt kompletten inhalt der Bild-Datei in den RAM
 	dat, err := ioutil.ReadFile(filepath.Join(directory, pic[0]+".png"))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(printTS(), err)
 	}
 
 	// Sendet das Bild als Byte-Stream zum Broswer des Benutzers
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Content-Length", strconv.Itoa(len(dat)))
 	if _, err := w.Write(dat); err != nil {
-		fmt.Println(err)
+		fmt.Println(printTS(), err)
 	}
 }
