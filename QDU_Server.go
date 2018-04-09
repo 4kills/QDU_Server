@@ -31,7 +31,7 @@ var directoryWeb string
 var port string
 var portWeb string
 
-// Haupteinstigspunkt des Programms beim Ausführen
+// Haupteinstiegspunkt des Programms beim Ausführen
 func main() {
 	// Channel: werden benutzt um verschieden Goroutines zu synchronisieren
 	portChan := make(chan string)
