@@ -32,7 +32,7 @@ func readLine(c, tcpC, dirC chan<- string) {
 	r := bufio.NewReader(os.Stdin)
 	input, err := r.ReadString(inputDelimiter)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(printTS(), err)
 		return
 	}
 

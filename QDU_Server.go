@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 )
 
 // Attribute; Gültig über alle Funktionen
@@ -51,7 +52,7 @@ func main() {
 	// Wartet auf TCP-Verbindungen durch den port, die Bilder auf den Server hochladen
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
-		fmt.Println("Fatal error:\n", err.Error())
+		fmt.Println("Fatal error:\n", printTS(), err.Error())
 		os.Exit(1)
 	}
 
@@ -59,10 +60,16 @@ func main() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
+			fmt.Println(printTS(), err)
 			continue
 		}
 
 		// startet neue Goroutine der den verbundenen Benutzer bearbeitet
 		go handleClient(conn)
 	}
+}
+
+// gibt die zeit als string zurück, für error-nachrichten
+func printTS() string {
+	return time.Now().Format("2006-01-02_15-04-05-12345")
 }
