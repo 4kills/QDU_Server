@@ -99,13 +99,15 @@ func createName() string {
 	str := strings.Replace(time.Now().Format("2006-01-02_15-04-05-12345"), "-", "", -1)
 	str = strings.Replace(str, "_", "", -1)
 	str = strings.Replace(str, "0", "", -1)
+	str = str[1 : len(str)-3]
+
 	// Konvertierung des strings in eine Zahl und base58 encoding (um URL zu kürzen)
-	num, err := strconv.Atoi(str)
+	num, err := strconv.ParseInt(str, 10, 64)
 	if err != nil || num < 0 {
 		fmt.Println(printTS(), err)
 		fmt.Println("if err = null -> num is negative")
 	}
-	return base58Encoding(int64(num))
+	return base58Encoding(num)
 }
 
 // Kodiert eine zahl zu einer Basis 58-Zahl um URL zu kürzen
