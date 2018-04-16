@@ -40,7 +40,7 @@ func main() {
 	dirChan := make(chan string)
 
 	// Startet thread (goroutine) die konstant den Benutzer-Input liest und auswertet
-	go readInput(portChan, portChanWeb, dirChan)
+	go readInput()
 	// Startet Web-Server, welcher konstant http-Anfragen verarbeitet
 	// Bilder im Browser anzeigt, bei Aufrufen des links
 	go webServer(portChanWeb, dirChan)

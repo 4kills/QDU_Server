@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -13,32 +14,62 @@ import (
 //---------------------------------------------------------
 
 // Haupteinstiegsfunktion für das Lesen von User-Input
-func readInput(c, tcpC, dirC chan<- string) {
+func readInput() {
 	fmt.Print("QDU-Server launched...\n",
 		"Launch servers by entering the respetive settings\n\n")
+
+	for {
+		if err := manageSettings(); err != nil {
+			fmt.Println(printTS, err)
+			continue
+		}
+		break
+	}
 
 	fmt.Println("Write '/help' for a list of commands")
 	fmt.Print("-------------------------------------\n\n")
 	// liest konstant Konsolenzeile
 	for {
-		readLine(c, tcpC, dirC)
+		readLine()
 	}
 }
 
+func manageSettings() error {
+
+	fmt.Print("Do you want to load a setting file \n",
+		"or create and initialize a new one?\n",
+		"Load [0] / Create [1]\n")
+	s, err := readLine()
+	if err != nil {
+		return err
+	}
+	if s == "0" {
+		// Load
+		return LoadSettingsFile()
+	}
+	if s == "1" {
+		// Create
+		return CreateSettingsFile()
+	}
+	return errors.New("input was not in a correct format")
+}
+
+func LoadSettingsFile() error {
+
+}
+
+func CreateSettingsFile() error {
+
+}
+
 // Liest Konsolenzeile und lässt diese auf Befehle überprüfen
-func readLine(c, tcpC, dirC chan<- string) {
+func readLine() (string, error) {
 	// Liest Konsolen-Stream und bricht bei "Enter" ab zu lesen
 	const inputDelimiter = '\n'
 	r := bufio.NewReader(os.Stdin)
 	input, err := r.ReadString(inputDelimiter)
 	if err != nil {
-		fmt.Println(printTS(), err)
-		return
-	}
-
-	// return bei unnötigem Input
-	if !strings.Contains(input, "/") {
-		return
+		return "", err
 	}
 
 	// Formatiert input
@@ -50,11 +81,12 @@ func readLine(c, tcpC, dirC chan<- string) {
 	input = strings.Replace(input, " ", "", -1)
 
 	// überprüft auf Befehle
-	checkCommands(input, c, tcpC, dirC)
+
+	return input, nil
 }
 
 // Überprüft auf Befehle und setzt die Channel
-func checkCommands(s string, c, tcpC, dirC chan<- string) {
+func checkCommands(s string) {
 	// TODO: reduce hard coded strings (via export?)
 
 	// switch in Go kann benutzt werden um lange if-else
