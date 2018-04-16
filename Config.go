@@ -7,14 +7,14 @@ import (
 )
 
 type configuration struct {
-	domain       string
-	directory    string
-	directoryWeb string
-	port         string
-	portWeb      string
+	Domain        string `json:"domain"`
+	DirectoryPics string `json:"directoryPics"`
+	DirectoryWeb  string `json:"directoryWeb"`
+	PortTCP       string `json:"portTCP"`
+	PortWeb       string `json:"portWeb"`
 }
 
-func structToJSON(path string, stru interface{}) error {
+func structToJSONFile(path string, stru interface{}) error {
 	raw, err := json.Marshal(stru)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func structToJSON(path string, stru interface{}) error {
 	return nil
 }
 
-func jsonToStruct(path string, stru interface{}) error {
+func jsonFileToStruct(path string, stru interface{}) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err

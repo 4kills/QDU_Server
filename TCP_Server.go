@@ -129,7 +129,7 @@ func base58Encoding(num int64) string {
 
 // schafft Dateipfad anhand des Bildnamens und standard Dateipfad
 func createPicPath(name string) string {
-	return filepath.Join(directory, name+".png")
+	return filepath.Join(config.DirectoryPics, name+".png")
 }
 
 // erstellt die Bilddatei und speichert diese auf die Festplatte
@@ -159,11 +159,11 @@ func draw(buffer []byte, path string) {
 // Erschafft die URL anhand des Bildnamens
 func createURL(name string) string {
 	// TODO: improve string concatination
-	dir := directoryWeb
-	if directoryWeb == "" {
+	dir := config.DirectoryWeb
+	if config.DirectoryWeb == "" {
 		dir = "/"
 	}
-	return "http://" + domain + dir + "?i=" + name
+	return "http://" + config.Domain + dir + "?i=" + name
 }
 
 // Schreibt die URL in den Netzwerk-Stream

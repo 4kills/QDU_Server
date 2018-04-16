@@ -26,33 +26,21 @@ import (
 // Attribute; Gültig über alle Funktionen
 // Asynchron setzbar von jeder Goroutine
 // (c#'s threads, co-routinen, keine sub-routinen)
-var domain string
-var directory string
-var directoryWeb string
-var port string
-var portWeb string
-
 var config configuration
 
 // Haupteinstiegspunkt des Programms beim Ausführen
 func main() {
-	// Channel: werden benutzt um verschieden Goroutines zu synchronisieren
-	portChan := make(chan string)
-	portChanWeb := make(chan string)
-	dirChan := make(chan string)
 
 	// Startet thread (goroutine) die konstant den Benutzer-Input liest und auswertet
-	go readInput()
+	readInput()
 	// Startet Web-Server, welcher konstant http-Anfragen verarbeitet
 	// Bilder im Browser anzeigt, bei Aufrufen des links
-	go webServer(portChanWeb, dirChan)
-
-	port = <-portChan // Blockiert den Thread bis portChan in readInput gesetzt wird
+	go webServer()
 
 	fmt.Print("TCP-Server launched...\n\n")
 
 	// Wartet auf TCP-Verbindungen durch den port, die Bilder auf den Server hochladen
-	ln, err := net.Listen("tcp", port)
+	ln, err := net.Listen("tcp", config.PortTCP)
 	if err != nil {
 		fmt.Println("Fatal error:\n", printTS(), err.Error())
 		os.Exit(1)

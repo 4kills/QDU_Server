@@ -9,10 +9,6 @@ import (
 	"strings"
 )
 
-//---------------------------------------------------------
-// Lesen und Auswerten von User-Input startet hier
-//---------------------------------------------------------
-
 // Haupteinstiegsfunktion für das Lesen von User-Input
 func readInput() {
 	fmt.Print("QDU-Server launched...\n",
@@ -20,17 +16,24 @@ func readInput() {
 
 	for {
 		if err := manageSettings(); err != nil {
-			fmt.Println(printTS, err)
+			fmt.Println(printTS(), err)
 			continue
 		}
 		break
 	}
 
-	fmt.Println("Write '/help' for a list of commands")
+	go listenCommands()
+}
+
+func listenCommands() {
+	fmt.Println("\nWrite '/help' for a list of commands")
 	fmt.Print("-------------------------------------\n\n")
-	// liest konstant Konsolenzeile
 	for {
-		readLine()
+		s, err := readLine()
+		if err != nil {
+			fmt.Println(printTS(), err)
+		}
+		checkCommands(s)
 	}
 }
 
@@ -38,7 +41,7 @@ func manageSettings() error {
 
 	fmt.Print("Do you want to load a setting file \n",
 		"or create and initialize a new one?\n",
-		"Load [0] / Create [1]\n")
+		"Load [0] / Create [1]\n\n")
 	s, err := readLine()
 	if err != nil {
 		return err
@@ -62,7 +65,7 @@ func loadSettingsFile() error {
 		return err
 	}
 
-	if err = jsonToStruct(s, &config); err != nil {
+	if err = jsonFileToStruct(s, &config); err != nil {
 		return err
 	}
 
@@ -72,7 +75,52 @@ func loadSettingsFile() error {
 }
 
 func createSettingsFile() error {
+	fmt.Print("Please enter the path + (name).json to your config file\n\n")
 
+	s, err := readLine()
+	if err != nil {
+		return err
+	}
+	path := s
+
+	fmt.Print("Please enter your domain <[sub.]domain.toplvl>\n",
+		"(this will be used for creating the URL that is sent to the connected client):\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.Domain = s
+
+	fmt.Print("Please enter your web directory\n",
+		"(this will be used for creating the URL that is sent to the connected client):\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.DirectoryWeb = s
+
+	fmt.Print("Please enter the directory (absolute path) where the images should be saved:\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.DirectoryPics = s
+
+	fmt.Print("Please enter the desired TCP port:\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.PortTCP = ":" + s
+
+	fmt.Print("Please enter the desired web port on which this web server will run:\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.PortWeb = ":" + s
+
+	return structToJSONFile(path, config)
 }
 
 // Liest Konsolenzeile und lässt diese auf Befehle überprüfen
@@ -101,60 +149,38 @@ func readLine() (string, error) {
 // Überprüft auf Befehle und setzt die Channel
 func checkCommands(s string) {
 	// TODO: reduce hard coded strings (via export?)
-
-	// switch in Go kann benutzt werden um lange if-else
-	// ausdrücke leserlicher zu gestalten.
 	switch {
-	case len(s) > 11 && (s[:11] == "/setPortTCP"):
-		c <- ":" + s[11:]
-		fmt.Print("successfully set port\n\n")
 	case s == "/getPortTCP":
-		if len(port) < 1 {
+		if len(config.PortTCP) < 1 {
 			fmt.Print("\n\n")
 			break
 		}
-		fmt.Print(port[1:], "\n\n")
-	case len(s) > 11 && (s[:11] == "/setPortWeb"):
-		tcpC <- ":" + s[11:]
-		fmt.Print("successfully set portWeb\n\n")
+		fmt.Print(config.PortTCP[1:], "\n\n")
 	case s == "/getPortWeb":
-		if len(portWeb) < 1 {
+		if len(config.PortWeb) < 1 {
 			fmt.Print("\n\n")
 			break
 		}
-		fmt.Print(portWeb[1:], "\n\n")
+		fmt.Print(config.PortWeb[1:], "\n\n")
 	case s == "/getDirWeb":
-		fmt.Print(directoryWeb)
-	case len(s) > 10 && (s[:10] == "/setDirWeb"):
-		dirC <- s[10:]
-		fmt.Print("successfully set webDir\n\n")
+		fmt.Print(config.DirectoryWeb)
 	case s == "/help":
 		fmt.Print("\n-------------------------------------------------------------------------------",
 			"\n/help \t\t\t\t- returns a list of commands",
 			"\n/getDomain \t\t\t- gets current domain for links",
-			"\n/setDomain <domain>\t\t- sets domain for returning link",
 			"\n/getDir \t\t\t- gets output directory of pics",
-			"\n/setDir <abs path> \t\t- sets output directory of pics",
 			"\n/getDirWeb \t\t\t- gets directory for web requests",
-			"\n/setDirWeb <rel path>\t\t- sets directory for web requests; may be empty",
 			"\n/getPortTCP \t\t\t- gets the admin defined port",
-			"\n/setPortTCP <port> \t\t- sets the tcp port. Set this first",
 			"\n/getPortWeb \t\t\t- gets the web port",
-			"\n/setPortWeb <port>\t\t- sets the web port. Set this second",
 			"\n/quit \t\t\t\t- exits the application w/ exit status 3",
 			"\n/info \t\t\t\t- returns information about the programm",
 			"\n\n- Be aware to port-forward to your server and to adjust firewall settings",
 			"\n-------------------------------------------------------------------------------\n\n")
 	case s == "/getDir":
-		fmt.Println(directory)
-	case len(s) > 7 && (s[:7] == "/setDir"):
-		directory = s[7:]
-		fmt.Print("successfully set output directory\n\n")
+		fmt.Println(config.DirectoryPics)
+
 	case s == "/getDomain":
-		fmt.Println(domain)
-	case len(s) > 10 && (s[:10] == "/setDomain"):
-		domain = s[10:]
-		fmt.Print("successfully set domain\n\n")
+		fmt.Println(config.Domain)
 	case s == "/quit":
 		os.Exit(3)
 	case s == "/info":

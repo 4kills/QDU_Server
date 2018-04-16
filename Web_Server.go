@@ -18,20 +18,14 @@ import (
 //---------------------------------------------------------
 
 // Hauptfunktion des Webservers
-func webServer(pC, dirC <-chan string) {
+func webServer() {
 	// Wartet bis nötige variablen vom Benutzer gesetzt sind
-	select {
-	case portWeb = <-pC:
-		directoryWeb = <-dirC
-	case directoryWeb = <-dirC:
-		portWeb = <-pC
-	}
 	fmt.Print("Web-Server launched...\n\n")
 
 	// Konfiguriert und startet Webserver
 	router := mux.NewRouter()
-	router.HandleFunc(directoryWeb, handleRequest).Methods("GET")
-	if err := http.ListenAndServe(portWeb, router); err != nil {
+	router.HandleFunc(config.DirectoryWeb, handleRequest).Methods("GET")
+	if err := http.ListenAndServe(config.PortWeb, router); err != nil {
 		fmt.Println("Web-Server crashed:\n", printTS(), err)
 		os.Exit(1)
 	}
@@ -46,7 +40,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// schreibt kompletten inhalt der Bild-Datei in den RAM
-	dat, err := ioutil.ReadFile(filepath.Join(directory, pic[0]+".png"))
+	dat, err := ioutil.ReadFile(filepath.Join(config.DirectoryPics, pic[0]+".png"))
 	if err != nil {
 		fmt.Println(printTS(), err)
 	}
