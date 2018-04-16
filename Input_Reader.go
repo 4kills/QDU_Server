@@ -186,7 +186,7 @@ func checkCommands(s string) {
 	case s == "/info":
 		fmt.Print("\n-------------------------------------------------------------------------------",
 			"\nDevelopment Framework: Golang 1.10",
-			"\nVersion: 1.0 (stable release)",
+			"\nVersion: 1.1 (beta)",
 			"\nCreator: Dominik Ochs",
 			"\n-------------------------------------------------------------------------------\n\n")
 	}
