@@ -32,6 +32,8 @@ var directoryWeb string
 var port string
 var portWeb string
 
+var config configuration
+
 // Haupteinstiegspunkt des Programms beim Ausführen
 func main() {
 	// Channel: werden benutzt um verschieden Goroutines zu synchronisieren

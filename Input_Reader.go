@@ -45,20 +45,33 @@ func manageSettings() error {
 	}
 	if s == "0" {
 		// Load
-		return LoadSettingsFile()
+		return loadSettingsFile()
 	}
 	if s == "1" {
 		// Create
-		return CreateSettingsFile()
+		return createSettingsFile()
 	}
 	return errors.New("input was not in a correct format")
 }
 
-func LoadSettingsFile() error {
+func loadSettingsFile() error {
+	fmt.Print("Please enter the absolute(!) file path to your config (json)\n")
 
+	s, err := readLine()
+	if err != nil {
+		return err
+	}
+
+	if err = jsonToStruct(s, &config); err != nil {
+		return err
+	}
+
+	fmt.Print("\nSucessfully loaded config\n")
+
+	return nil
 }
 
-func CreateSettingsFile() error {
+func createSettingsFile() error {
 
 }
 
