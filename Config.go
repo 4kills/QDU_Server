@@ -1,21 +1,23 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
+
+	"github.com/4kills/qdn"
 )
 
 type configuration struct {
-	Domain        string `json:"domain"`
-	DirectoryPics string `json:"directoryPics"`
-	DirectoryWeb  string `json:"directoryWeb"`
-	PortTCP       string `json:"portTCP"`
-	PortWeb       string `json:"portWeb"`
+	Domain        string
+	DirectoryPics string
+	DirectoryWeb  string
+	PortTCP       string
+	PortWeb       string
 }
 
-func structToJSONFile(path string, stru interface{}) error {
-	raw, err := json.Marshal(stru)
+func structToQDNFile(path string, stru interface{}) error {
+	raw, err := qdn.Marshal(stru)
 	if err != nil {
 		return err
 	}
@@ -34,7 +36,11 @@ func structToJSONFile(path string, stru interface{}) error {
 	return nil
 }
 
-func jsonFileToStruct(path string, stru interface{}) error {
+func qdnFileToStruct(path string, stru interface{}) error {
+	if path[len(path)-4:] != ".qdn" {
+		return errors.New("No .qdn-file provided")
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -47,7 +53,8 @@ func jsonFileToStruct(path string, stru interface{}) error {
 		return err
 	}
 
-	err = json.Unmarshal(raw, stru)
+	err = qdn.Unmarshal(stru, raw)
+
 	if err != nil {
 		return err
 	}

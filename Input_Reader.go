@@ -58,14 +58,14 @@ func manageSettings() error {
 }
 
 func loadSettingsFile() error {
-	fmt.Print("Please enter the absolute(!) file path to your config (json)\n")
+	fmt.Print("Please enter the absolute(!) file path to your config (qdn-file)\n")
 
 	s, err := readLine()
 	if err != nil {
 		return err
 	}
 
-	if err = jsonFileToStruct(s, &config); err != nil {
+	if err = qdnFileToStruct(s, &config); err != nil {
 		return err
 	}
 
@@ -75,7 +75,7 @@ func loadSettingsFile() error {
 }
 
 func createSettingsFile() error {
-	fmt.Print("Please enter the path + (name).json to your config file\n\n")
+	fmt.Print("Please enter the path + (name).qdn to your config file\n\n")
 
 	s, err := readLine()
 	if err != nil {
@@ -120,7 +120,7 @@ func createSettingsFile() error {
 	}
 	config.PortWeb = ":" + s
 
-	return structToJSONFile(path, config)
+	return structToQDNFile(path, config)
 }
 
 // Liest Konsolenzeile und lässt diese auf Befehle überprüfen
