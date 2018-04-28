@@ -22,6 +22,11 @@ func structToQDNFile(path string, stru interface{}) error {
 		return err
 	}
 
+	raw, err = qdn.Format(raw)
+	if err != nil {
+		return err
+	}
+
 	var f *os.File
 	f, err = os.Create(path)
 	if err != nil {
@@ -54,9 +59,9 @@ func qdnFileToStruct(path string, stru interface{}) error {
 	}
 
 	err = qdn.Unmarshal(stru, raw)
-
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
