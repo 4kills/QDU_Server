@@ -38,9 +38,12 @@ func handleClient(conn net.Conn) {
 func recMetaData(conn net.Conn) int {
 	// Erstellt neuen Meta-Daten buffer und liest diese vom Netzwerkstream
 	bytes := make([]byte, 16)
-	_, err := conn.Read(bytes)
+	r, err := conn.Read(bytes)
 	if err != nil {
 		fmt.Println(printTS(), err)
+	}
+	if r < 16 {
+		fmt.Println(printTS(), ": didnt fully receive meta data: received:", r, "/16 bytes")
 	}
 
 	// Konvertiert als string verschlüsselte Größe d. Bild in einen integer
