@@ -45,7 +45,12 @@ func recMetaData(conn net.Conn) int {
 
 	// Konvertiert als string verschlüsselte Größe d. Bild in einen integer
 	s := string(bytes)
-	integer, err2 := strconv.Atoi(s[:strings.IndexByte(s, 0)])
+	ib := strings.IndexByte(s, 0)
+	if ib == -1 || ib > len(s) {
+		fmt.Println(printTS(), ": index overflowed: ib =", ib)
+		ib = len(s)
+	}
+	integer, err2 := strconv.Atoi(s[:ib])
 	if err2 != nil {
 		fmt.Println(printTS(), err2)
 	}
