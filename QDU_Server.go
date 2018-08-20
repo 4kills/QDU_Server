@@ -17,10 +17,10 @@ package main
 // Importiert go-Bibliotheken (c# äquivalent: using System; ...)
 import (
 	// Standard Bibliotheken
-	"fmt"
+
+	"log"
 	"net"
 	"os"
-	"time"
 )
 
 // Attribute; Gültig über alle Funktionen
@@ -37,12 +37,12 @@ func main() {
 	// Bilder im Browser anzeigt, bei Aufrufen des links
 	go webServer()
 
-	fmt.Print("TCP-Server launched...\n\n")
+	log.Print("TCP-Server launched...\n\n")
 
 	// Wartet auf TCP-Verbindungen durch den port, die Bilder auf den Server hochladen
 	ln, err := net.Listen("tcp", config.PortTCP)
 	if err != nil {
-		fmt.Println("Fatal error:\n", printTS(), err.Error())
+		log.Println("Fatal error:\n", err)
 		os.Exit(1)
 	}
 
@@ -50,16 +50,11 @@ func main() {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println(printTS(), err)
+			log.Println(err)
 			continue
 		}
 
 		// startet neue Goroutine der den verbundenen Benutzer bearbeitet
 		go handleClient(conn)
 	}
-}
-
-// gibt die zeit als string zurück, für error-nachrichten
-func printTS() string {
-	return time.Now().Format("2006-01-02_15-04-05-12345")
 }

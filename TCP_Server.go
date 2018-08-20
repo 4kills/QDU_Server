@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"image/png"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -40,21 +40,21 @@ func recMetaData(conn net.Conn) int {
 	bb := make([]byte, 16)
 	r, err := conn.Read(bb)
 	if err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 	if r < 16 {
-		fmt.Println(printTS(), ": didnt fully receive meta data: received:", r, "/16 bytes")
+		log.Println(": didnt fully receive meta data: received:", r, "/16 bytes")
 	}
 
 	// Konvertiert als string verschlüsselte Größe d. Bild in einen integer
 	ib := bytes.IndexByte(bb, 0)
 	if ib == -1 {
-		fmt.Println(printTS(), ": index overflowed: ib =", ib)
+		log.Println(": index overflowed: ib =", ib)
 		ib = len(bb)
 	}
 	integer, err := strconv.Atoi(string(bb[:ib]))
 	if err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 	return integer
 }
@@ -64,10 +64,10 @@ func recApproval(conn net.Conn) {
 	buffer := make([]byte, 1)
 	_, err := conn.Read(buffer)
 	if err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 	if buffer[0] != 1 {
-		fmt.Println(printTS(), ": approval wasn't given")
+		log.Println(": approval wasn't given")
 	}
 }
 
@@ -75,10 +75,10 @@ func recApproval(conn net.Conn) {
 func sendApproval(conn net.Conn) {
 	send, err := conn.Write([]byte{1})
 	if err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 	if send != 1 {
-		fmt.Println(printTS(), ": couldn't send approval, network write error")
+		log.Println(": couldn't send approval, network write error")
 	}
 }
 
@@ -92,7 +92,7 @@ func recImage(conn net.Conn, size int) []byte {
 	for rec := 0; rec < size; {
 		cur, err := conn.Read(bytes[rec:])
 		if err != nil {
-			fmt.Println(printTS(), err)
+			log.Println(err)
 		}
 		rec += cur
 	}
@@ -111,8 +111,8 @@ func createName() string {
 	// Konvertierung des strings in eine Zahl und base58 encoding (um URL zu kürzen)
 	num, err := strconv.ParseInt(str, 10, 64)
 	if err != nil || num < 0 {
-		fmt.Println(printTS(), err)
-		fmt.Println("if err = null -> num is negative")
+		log.Println(err)
+		log.Println("if err = null -> num is negative")
 	}
 	return base58Encoding(num)
 }
@@ -142,9 +142,9 @@ func createPicPath(name string) string {
 // erstellt die Bilddatei und speichert diese auf die Festplatte
 func draw(buffer []byte, path string) {
 	// Decoded den Bildbuffer in ein go-Image
-	img, errImg := png.Decode(bytes.NewReader(buffer))
-	if errImg != nil {
-		fmt.Println(printTS(), errImg)
+	img, err := png.Decode(bytes.NewReader(buffer))
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
@@ -152,14 +152,14 @@ func draw(buffer []byte, path string) {
 	out, err := os.Create(path)
 	defer out.Close()
 	if err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 		return
 	}
 
 	// Schreibt das go-Image in den Datei-Stream
 	errPng := png.Encode(out, img)
 	if errPng != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 }
 
@@ -170,7 +170,7 @@ func createURL(name string) string {
 	if config.DirectoryWeb == "" {
 		dir = "/"
 	}
-	return "http://" + config.Domain + dir + "?i=" + name
+	return "https://" + config.Domain + dir + "?i=" + name
 }
 
 // Schreibt die URL in den Netzwerk-Stream
@@ -178,12 +178,12 @@ func sendURL(conn net.Conn, s string) {
 	buffer := []byte(s)
 	// Schreibt Größe der URL
 	if _, err := conn.Write([]byte{byte(len(buffer))}); err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 	// Wartet auf Client
 	recApproval(conn)
 	// Schreibt URL
 	if _, err := conn.Write(buffer); err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 }

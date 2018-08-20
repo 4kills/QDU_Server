@@ -2,18 +2,15 @@ package main
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 
-	"golang.org/x/crypto/acme/autocert"
-
-	// Biliothek zum einfacheren verteilen von http-Anfragen;
-	// simuliert einen "router"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 //---------------------------------------------------------
@@ -23,19 +20,19 @@ import (
 // Hauptfunktion des Webservers
 func webServer() {
 	// Wartet bis nötige variablen vom Benutzer gesetzt sind
-	fmt.Print("Web-Server launched...\n\n")
+	log.Print("Web-Server launched...\n\n")
 
 	// Adds HTTPS certificate
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("qdu.haveachin.de"),
+		HostPolicy: autocert.HostWhitelist(config.Domain),
 		Cache:      autocert.DirCache("certs"),
 	}
 
 	// Konfiguriert und startet Webserver
 	router := mux.NewRouter()
 	server := &http.Server{
-		Addr: ":1338",
+		Addr: config.PortWeb,
 		TLSConfig: &tls.Config{
 			GetCertificate: certManager.GetCertificate,
 		},
@@ -46,7 +43,7 @@ func webServer() {
 
 	go http.ListenAndServe(config.PortWeb, certManager.HTTPHandler(nil))
 	if err := server.ListenAndServeTLS("", ""); err != nil {
-		fmt.Println("Web-Server crashed:\n", printTS(), err)
+		log.Println("Web-Server crashed:\n", err)
 		os.Exit(1)
 	}
 }
@@ -62,13 +59,13 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// schreibt kompletten inhalt der Bild-Datei in den RAM
 	dat, err := ioutil.ReadFile(filepath.Join(config.DirectoryPics, pic[0]+".png"))
 	if err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 
 	// Sendet das Bild als Byte-Stream zum Broswer des Benutzers
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Content-Length", strconv.Itoa(len(dat)))
 	if _, err := w.Write(dat); err != nil {
-		fmt.Println(printTS(), err)
+		log.Println(err)
 	}
 }

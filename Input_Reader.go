@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"strings"
@@ -11,12 +11,12 @@ import (
 
 // Haupteinstiegsfunktion für das Lesen von User-Input
 func readInput() {
-	fmt.Print("QDU-Server launched...\n",
+	log.Print("QDU-Server launched...\n",
 		"Launch servers by entering the respetive settings\n\n")
 
 	for {
 		if err := manageSettings(); err != nil {
-			fmt.Println(printTS(), err)
+			log.Println(err)
 			continue
 		}
 		break
@@ -26,12 +26,12 @@ func readInput() {
 }
 
 func listenCommands() {
-	fmt.Println("\nWrite '/help' for a list of commands")
-	fmt.Print("-------------------------------------\n\n")
+	log.Println("\nWrite '/help' for a list of commands")
+	log.Print("-------------------------------------\n\n")
 	for {
 		s, err := readLine()
 		if err != nil {
-			fmt.Println(printTS(), err)
+			log.Println(err)
 		}
 		checkCommands(s)
 	}
@@ -39,7 +39,7 @@ func listenCommands() {
 
 func manageSettings() error {
 
-	fmt.Print("Do you want to load a setting file \n",
+	log.Print("Do you want to load a setting file \n",
 		"or create and initialize a new one?\n",
 		"Load [0] / Create [1]\n\n")
 	s, err := readLine()
@@ -58,7 +58,7 @@ func manageSettings() error {
 }
 
 func loadSettingsFile() error {
-	fmt.Print("Please enter the absolute(!) file path to your config (qdn-file)\n")
+	log.Print("Please enter the absolute(!) file path to your config (qdn-file)\n")
 
 	s, err := readLine()
 	if err != nil {
@@ -69,13 +69,13 @@ func loadSettingsFile() error {
 		return err
 	}
 
-	fmt.Print("\nSucessfully loaded config\n")
+	log.Print("\nSucessfully loaded config\n")
 
 	return nil
 }
 
 func createSettingsFile() error {
-	fmt.Print("Please enter the path + (name).qdn to your config file\n\n")
+	log.Print("Please enter the path + (name).qdn to your config file\n\n")
 
 	s, err := readLine()
 	if err != nil {
@@ -83,7 +83,7 @@ func createSettingsFile() error {
 	}
 	path := s
 
-	fmt.Print("Please enter your domain <[sub.]domain.toplvl>\n",
+	log.Print("Please enter your domain <[sub.]domain.toplvl>\n",
 		"(this will be used for creating the URL that is sent to the connected client):\n\n")
 	s, err = readLine()
 	if err != nil {
@@ -91,7 +91,7 @@ func createSettingsFile() error {
 	}
 	config.Domain = s
 
-	fmt.Print("Please enter your web directory\n",
+	log.Print("Please enter your web directory\n",
 		"(this will be used for creating the URL that is sent to the connected client):\n\n")
 	s, err = readLine()
 	if err != nil {
@@ -99,21 +99,21 @@ func createSettingsFile() error {
 	}
 	config.DirectoryWeb = s
 
-	fmt.Print("Please enter the directory (absolute path) where the images should be saved:\n\n")
+	log.Print("Please enter the directory (absolute path) where the images should be saved:\n\n")
 	s, err = readLine()
 	if err != nil {
 		return err
 	}
 	config.DirectoryPics = s
 
-	fmt.Print("Please enter the desired TCP port:\n\n")
+	log.Print("Please enter the desired TCP port:\n\n")
 	s, err = readLine()
 	if err != nil {
 		return err
 	}
 	config.PortTCP = ":" + s
 
-	fmt.Print("Please enter the desired web port on which this web server will run:\n\n")
+	log.Print("Please enter the desired web port on which this web server will run:\n\n")
 	s, err = readLine()
 	if err != nil {
 		return err
@@ -152,20 +152,20 @@ func checkCommands(s string) {
 	switch {
 	case s == "/getPortTCP":
 		if len(config.PortTCP) < 1 {
-			fmt.Print("\n\n")
+			log.Print("\n\n")
 			break
 		}
-		fmt.Print(config.PortTCP[1:], "\n\n")
+		log.Print(config.PortTCP[1:], "\n\n")
 	case s == "/getPortWeb":
 		if len(config.PortWeb) < 1 {
-			fmt.Print("\n\n")
+			log.Print("\n\n")
 			break
 		}
-		fmt.Print(config.PortWeb[1:], "\n\n")
+		log.Print(config.PortWeb[1:], "\n\n")
 	case s == "/getDirWeb":
-		fmt.Print(config.DirectoryWeb)
+		log.Print(config.DirectoryWeb)
 	case s == "/help":
-		fmt.Print("\n-------------------------------------------------------------------------------",
+		log.Print("\n-------------------------------------------------------------------------------",
 			"\n/help \t\t\t\t- returns a list of commands",
 			"\n/getDomain \t\t\t- gets current domain for links",
 			"\n/getDir \t\t\t- gets output directory of pics",
@@ -177,14 +177,14 @@ func checkCommands(s string) {
 			"\n\n- Be aware to port-forward to your server and to adjust firewall settings",
 			"\n-------------------------------------------------------------------------------\n\n")
 	case s == "/getDir":
-		fmt.Println(config.DirectoryPics)
+		log.Println(config.DirectoryPics)
 
 	case s == "/getDomain":
-		fmt.Println(config.Domain)
+		log.Println(config.Domain)
 	case s == "/quit":
 		os.Exit(3)
 	case s == "/info":
-		fmt.Print("\n-------------------------------------------------------------------------------",
+		log.Print("\n-------------------------------------------------------------------------------",
 			"\nDevelopment Framework: Golang 1.10",
 			"\nVersion: 1.1 (beta)",
 			"\nCreator: Dominik Ochs",
