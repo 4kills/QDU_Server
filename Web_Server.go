@@ -1,12 +1,15 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"golang.org/x/crypto/acme/autocert"
 
 	// Biliothek zum einfacheren verteilen von http-Anfragen;
 	// simuliert einen "router"
@@ -22,10 +25,27 @@ func webServer() {
 	// Wartet bis nötige variablen vom Benutzer gesetzt sind
 	fmt.Print("Web-Server launched...\n\n")
 
+	// Adds HTTPS certificate
+	certManager := autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("qdu.haveachin.de"),
+		Cache:      autocert.DirCache("certs"),
+	}
+
 	// Konfiguriert und startet Webserver
 	router := mux.NewRouter()
+	server := &http.Server{
+		Addr: ":1338",
+		TLSConfig: &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		},
+		Handler: router,
+	}
+
 	router.HandleFunc(config.DirectoryWeb, handleRequest).Methods("GET")
-	if err := http.ListenAndServe(config.PortWeb, router); err != nil {
+
+	go http.ListenAndServe(config.PortWeb, certManager.HTTPHandler(nil))
+	if err := server.ListenAndServeTLS("", ""); err != nil {
 		fmt.Println("Web-Server crashed:\n", printTS(), err)
 		os.Exit(1)
 	}

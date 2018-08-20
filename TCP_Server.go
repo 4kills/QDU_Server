@@ -37,8 +37,8 @@ func handleClient(conn net.Conn) {
 // erhält Meta-Daten wie Größe des Bildes
 func recMetaData(conn net.Conn) int {
 	// Erstellt neuen Meta-Daten buffer und liest diese vom Netzwerkstream
-	bytes := make([]byte, 16)
-	r, err := conn.Read(bytes)
+	bb := make([]byte, 16)
+	r, err := conn.Read(bb)
 	if err != nil {
 		fmt.Println(printTS(), err)
 	}
@@ -47,15 +47,14 @@ func recMetaData(conn net.Conn) int {
 	}
 
 	// Konvertiert als string verschlüsselte Größe d. Bild in einen integer
-	s := string(bytes)
-	ib := strings.IndexByte(s, 0)
-	if ib == -1 || ib > len(s) {
+	ib := bytes.IndexByte(bb, 0)
+	if ib == -1 {
 		fmt.Println(printTS(), ": index overflowed: ib =", ib)
-		ib = len(s)
+		ib = len(bb)
 	}
-	integer, err2 := strconv.Atoi(s[:ib])
-	if err2 != nil {
-		fmt.Println(printTS(), err2)
+	integer, err := strconv.Atoi(string(bb[:ib]))
+	if err != nil {
+		fmt.Println(printTS(), err)
 	}
 	return integer
 }
