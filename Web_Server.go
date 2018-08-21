@@ -1,16 +1,11 @@
 package main
 
 import (
-	"crypto/tls"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/gorilla/mux"
-	"golang.org/x/crypto/acme/autocert"
 )
 
 //---------------------------------------------------------
@@ -22,30 +17,13 @@ func webServer() {
 	// Wartet bis nötige variablen vom Benutzer gesetzt sind
 	log.Print("Web-Server launched...\n\n")
 
-	// Adds HTTPS certificate
-	certManager := autocert.Manager{
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(config.Domain),
-		Cache:      autocert.DirCache("certs"),
-	}
+	// assign assets to handler
+	http.HandleFunc(config.DirectoryWeb, handleRequest)
 
-	// Konfiguriert und startet Webserver
-	router := mux.NewRouter()
-	server := &http.Server{
-		Addr: config.PortWeb,
-		TLSConfig: &tls.Config{
-			GetCertificate: certManager.GetCertificate,
-		},
-		Handler: router,
-	}
-
-	router.HandleFunc(config.DirectoryWeb, handleRequest).Methods("GET")
-
-	go http.ListenAndServe(config.PortWeb, certManager.HTTPHandler(nil))
-	if err := server.ListenAndServeTLS("", ""); err != nil {
-		log.Println("Web-Server crashed:\n", err)
-		os.Exit(1)
-	}
+	go http.ListenAndServe(":http", nil)
+	log.Fatal("Web-Server crashed: \n\n", http.ListenAndServeTLS(config.PortWeb,
+		"/etc/letsencrypt/live/haveachin.de/fullchain.pem",
+		"/etc/letsencrypt/live/haveachin.de/privkey.pem", nil))
 }
 
 // Die Funktion die aufgerufen wird, wenn eine http-Anfrage hereinkommt
