@@ -20,7 +20,7 @@ import (
 func handleClient(conn net.Conn) {
 	defer conn.Close()
 	// erhält größe des Bildes (in Byte)
-	size := recMetaData(conn)
+	size := recSize(conn)
 	sendApproval(conn)
 	// erhält das Bild, abhängig von der Größe
 	buffer := recImage(conn, size)
@@ -35,7 +35,7 @@ func handleClient(conn net.Conn) {
 }
 
 // erhält Meta-Daten wie Größe des Bildes
-func recMetaData(conn net.Conn) int {
+func recSize(conn net.Conn) int {
 	// Erstellt neuen Meta-Daten buffer und liest diese vom Netzwerkstream
 	bb := make([]byte, 16)
 	r, err := conn.Read(bb)
@@ -43,7 +43,7 @@ func recMetaData(conn net.Conn) int {
 		log.Println(err)
 	}
 	if r < 16 {
-		log.Println(": didnt fully receive meta data: received:", r, "/16 bytes")
+		log.Println(": didnt fully receive size: received:", r, "/16 bytes")
 	}
 
 	// Konvertiert als string verschlüsselte Größe d. Bild in einen integer
