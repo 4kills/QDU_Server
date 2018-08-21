@@ -10,6 +10,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/itchyny/base58-go"
+
+	"github.com/google/uuid"
 )
 
 //---------------------------------------------------------
@@ -19,6 +23,20 @@ import (
 //Die Funktion wird für jeden verbunden Benutzer ausgeführt
 func handleClient(conn net.Conn) {
 	defer conn.Close()
+
+	service := getService(conn)
+
+	if service == 1 {
+		sendToken(conn)
+		recApproval(conn)
+	}
+	if service == 0 {
+		sendApproval(conn)
+	}
+
+	tok58 := recToken(conn)
+	sendApproval(conn)
+
 	// erhält größe des Bildes (in Byte)
 	size := recSize(conn)
 	sendApproval(conn)
@@ -29,9 +47,51 @@ func handleClient(conn net.Conn) {
 	// erschafft Dateipfad für das Bild
 	path := createPicPath(name)
 	// erstellt die Bilddatei (hier: .png) im angegebenen Pfad
+	//TODO; ADD DATABASE STUFF SOMEWHERE HERE
 	draw(buffer, path)
 	// schickt die URL für das Bild zurück an den Benutzer
 	sendURL(conn, createURL(name))
+}
+
+func recToken(conn net.Conn) []byte {
+	tok58 := make([]byte, 32)
+	r, err := conn.Read(tok58)
+	if err != nil {
+		log.Println("rec token error:", err)
+	}
+	if r < 32 {
+		log.Println("didnt fully receive token:", r)
+	}
+	return tok58
+}
+
+func sendToken(conn net.Conn) {
+	encoder := base58.BitcoinEncoding
+	u := uuid.New()
+	buf, err := encoder.Encode(u[:])
+	if err != nil {
+		log.Println("base58 encode error:", err)
+	}
+
+	send, err := conn.Write(buf)
+	if err != nil {
+		log.Println(err)
+	}
+	if send != len(buf) {
+		log.Println(": couldn't send token, network write error")
+	}
+}
+
+func getService(conn net.Conn) byte {
+	bb := make([]byte, 1)
+	r, err := conn.Read(bb)
+	if err != nil {
+		log.Println(err)
+	}
+	if r < 1 {
+		log.Print("didnt receive requested service properly")
+	}
+	return bb[0]
 }
 
 // erhält Meta-Daten wie Größe des Bildes
