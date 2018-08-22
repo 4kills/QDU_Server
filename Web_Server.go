@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/itchyny/base58-go"
+	"github.com/google/uuid"
 )
 
 //---------------------------------------------------------
@@ -35,19 +35,19 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Liest aus der URL durch die GET-Methode das angefragte Bild aus
 	keys := r.URL.Query()
 	pic, okI := keys["i"]
-	tok58, okMe := keys["me"]
+	tokstr, okMe := keys["me"]
 	if okI || okMe == false || okI && okMe == true {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	if len(pic) < 16 || len(tok58) < 16 {
+	if len(pic[0]) < 36 || len(tokstr[0]) < 36 {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	if okMe {
-		sendGallery(w, tok58)
+		sendGallery(w, tokstr[0])
 		return
 	}
 
@@ -68,16 +68,15 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sendGallery(w http.ResponseWriter, tok58 []string) {
-	encoder := base58.BitcoinEncoding
-	tok16, err := encoder.Decode([]byte(tok58[0]))
+func sendGallery(w http.ResponseWriter, tokstr string) {
+	tok, err := uuid.Parse(tokstr)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		log.Println("tok58 decode error:", err)
+		log.Println("tokstr decode error:", err)
 		return
 	}
 
-	rows, err := db.Query("SELECT pic_id FROM pics WHERE token = ?", tok16)
+	rows, err := db.Query("SELECT pic_id FROM pics WHERE token = ?", tok[:])
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		log.Println("db error:", err)
@@ -91,13 +90,13 @@ func sendGallery(w http.ResponseWriter, tok58 []string) {
 			log.Println("scan row error:", err)
 			continue
 		}
-		nam58, err := encoder.Encode(nam16)
+		picID, err := uuid.FromBytes(nam16)
 		if err != nil {
 			log.Println("nam16 encode error:", err)
 			continue
 		}
 
-		links = append(links, string(nam58))
+		links = append(links, picID.String())
 	}
 
 	w.WriteHeader(http.StatusOK)

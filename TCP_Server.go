@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/itchyny/base58-go"
-
 	"github.com/google/uuid"
 )
 
@@ -30,7 +28,7 @@ func handleClient(conn net.Conn) {
 		sendApproval(conn)
 	}
 
-	tok58 := recToken(conn)
+	tok, _ := recToken(conn)
 	sendApproval(conn)
 
 	// erhält größe des Bildes (in Byte)
@@ -50,56 +48,45 @@ func handleClient(conn net.Conn) {
 
 	conn.Close()
 
-	addToDB(name, tok58)
+	addToDB(name, tok)
 }
 
-func addToDB(imgName string, tok58 []byte) {
-	encoder := base58.BitcoinEncoding
-	imgID, err := encoder.Decode([]byte(imgName))
-	if err != nil || len(imgID) != 16 {
-		log.Println("base58 encode error: imgName:", err)
-	}
-	tok16, err := encoder.Decode(tok58)
-	if err != nil || len(tok16) != 16 {
-		log.Println("base58 encode error: tok58:", err)
+func addToDB(imgName string, tok uuid.UUID) {
+	imgID, err := uuid.Parse(imgName)
+	if err != nil {
+		log.Println("uuid parse failure:", err)
 	}
 
-	_, err = db.Exec("INSERT INTO pics (pic_id, token) VALUES (?, ?)", imgID, tok16)
+	_, err = db.Exec("INSERT INTO pics (pic_id, token) VALUES (?, ?)", imgID[:], tok[:])
 	if err != nil {
 		log.Println("db insert error:", err)
 	}
 }
 
-func recToken(conn net.Conn) []byte {
-	tok58 := make([]byte, 32)
-	r, err := conn.Read(tok58)
+func recToken(conn net.Conn) (uuid.UUID, error) {
+	id := make([]byte, 36)
+	r, err := conn.Read(id)
 	if err != nil {
 		log.Println("rec token error:", err)
 	}
-	if r < 32 {
+	if r < 36 {
 		log.Println("didnt fully receive token:", r)
 	}
-	return tok58
+	return uuid.Parse(string(id))
 }
 
-func genToken58() []byte {
-	encoder := base58.BitcoinEncoding
-	u := uuid.New()
-	tok58, err := encoder.Encode(u[:])
-	if err != nil {
-		log.Println("base58 encode error:", err)
-	}
-	return tok58
+func genToken58() uuid.UUID {
+	return uuid.New()
 }
 
 func sendToken(conn net.Conn) {
 
-	buf := genToken58()
-	send, err := conn.Write(buf)
+	id := genToken58()
+	send, err := conn.Write([]byte(id.String()))
 	if err != nil {
 		log.Println(err)
 	}
-	if send != len(buf) {
+	if send != len(id.String()) {
 		log.Println(": couldn't send token, network write error")
 	}
 }
@@ -184,7 +171,7 @@ func recImage(conn net.Conn, size int) []byte {
 // erstellt einzigartigen Namen für jedes Bild anhand des Timestamps:
 // durch die 10tel-Millisekunden ist ein doppelter Name beinahe unmöglich
 func createName() string {
-	return string(genToken58())
+	return genToken58().String()
 }
 
 // schafft Dateipfad anhand des Bildnamens und standard Dateipfad
