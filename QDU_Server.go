@@ -18,21 +18,30 @@ package main
 import (
 	// Standard Bibliotheken
 
+	"database/sql"
 	"log"
 	"net"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Attribute; Gültig über alle Funktionen
 // Asynchron setzbar von jeder Goroutine
 // (c#'s threads, co-routinen, keine sub-routinen)
 var config configuration
+var db *sql.DB
 
 // Haupteinstiegspunkt des Programms beim Ausführen
 func main() {
 
 	// Startet thread (goroutine) die konstant den Benutzer-Input liest und auswertet
 	readInput()
+
+	// establishes connection with database
+	initDB()
+	defer db.Close()
+
 	// Startet Web-Server, welcher konstant http-Anfragen verarbeitet
 	// Bilder im Browser anzeigt, bei Aufrufen des links
 	go webServer()
@@ -56,5 +65,14 @@ func main() {
 
 		// startet neue Goroutine der den verbundenen Benutzer bearbeitet
 		go handleClient(conn)
+	}
+}
+
+func initDB() {
+	log.Print("DB-connection established... \n\n")
+	var err error
+	db, err = sql.Open("mysql", "root:@/qdu") // später anpassen
+	if err != nil {
+		log.Fatal("DB connection error:", err)
 	}
 }

@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/itchyny/base58-go"
 
@@ -22,8 +20,6 @@ import (
 
 //Die Funktion wird für jeden verbunden Benutzer ausgeführt
 func handleClient(conn net.Conn) {
-	defer conn.Close()
-
 	service := getService(conn)
 
 	if service == 1 {
@@ -51,6 +47,27 @@ func handleClient(conn net.Conn) {
 	draw(buffer, path)
 	// schickt die URL für das Bild zurück an den Benutzer
 	sendURL(conn, createURL(name))
+
+	conn.Close()
+
+	addToDB(name, tok58)
+}
+
+func addToDB(imgName string, tok58 []byte) {
+	encoder := base58.BitcoinEncoding
+	imgID, err := encoder.Decode([]byte(imgName))
+	if err != nil || len(imgID) != 16 {
+		log.Println("base58 encode error: imgName:", err)
+	}
+	tok16, err := encoder.Decode(tok58)
+	if err != nil || len(tok16) != 16 {
+		log.Println("base58 encode error: tok58:", err)
+	}
+
+	_, err = db.Exec("INSERT INTO pics (pic_id, token) VALUES (?, ?)", imgID, tok16)
+	if err != nil {
+		log.Println("db insert error:", err)
+	}
 }
 
 func recToken(conn net.Conn) []byte {
@@ -65,14 +82,19 @@ func recToken(conn net.Conn) []byte {
 	return tok58
 }
 
-func sendToken(conn net.Conn) {
+func genToken58() []byte {
 	encoder := base58.BitcoinEncoding
 	u := uuid.New()
-	buf, err := encoder.Encode(u[:])
+	tok58, err := encoder.Encode(u[:])
 	if err != nil {
 		log.Println("base58 encode error:", err)
 	}
+	return tok58
+}
 
+func sendToken(conn net.Conn) {
+
+	buf := genToken58()
 	send, err := conn.Write(buf)
 	if err != nil {
 		log.Println(err)
@@ -162,36 +184,7 @@ func recImage(conn net.Conn, size int) []byte {
 // erstellt einzigartigen Namen für jedes Bild anhand des Timestamps:
 // durch die 10tel-Millisekunden ist ein doppelter Name beinahe unmöglich
 func createName() string {
-	// Erhält Timestamp als string und kürzt diesen
-	str := strings.Replace(time.Now().Format("2006-01-02_15-04-05-12345"), "-", "", -1)
-	str = strings.Replace(str, "_", "", -1)
-	str = strings.Replace(str, "0", "", -1)
-	str = str[1 : len(str)-3]
-
-	// Konvertierung des strings in eine Zahl und base58 encoding (um URL zu kürzen)
-	num, err := strconv.ParseInt(str, 10, 64)
-	if err != nil || num < 0 {
-		log.Println(err)
-		log.Println("if err = null -> num is negative")
-	}
-	return base58Encoding(num)
-}
-
-// Kodiert eine zahl zu einer Basis 58-Zahl um URL zu kürzen
-// wie Hexadezimal nur zur Basis 58; Basis 64 ungeeignet wegen "/"-Sonderzeichen
-func base58Encoding(num int64) string {
-	const codeSet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
-	base := int64(len(codeSet)) // 58
-	var encoded []string
-
-	// itteriert durch die Zahl und hängt das nötige base58-Zeichen an output-string
-	for num != 0 {
-		remainder := num % base
-		encoded = append([]string{codeSet[remainder : remainder+1]}, strings.Join(encoded, ""))
-		num = num / base
-	}
-
-	return strings.Join(encoded, "")
+	return string(genToken58())
 }
 
 // schafft Dateipfad anhand des Bildnamens und standard Dateipfad
