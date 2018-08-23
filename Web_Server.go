@@ -105,7 +105,7 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		`SELECT pic_id, timestamp, clicks 
 		FROM pics 
 		WHERE token = ? 
-		ORDER BY timestamp`, tok[:])
+		ORDER BY timestamp DESC`, tok[:])
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		log.Println("db select query error:", err)
