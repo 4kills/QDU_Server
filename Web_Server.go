@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +15,8 @@ import (
 // Web-Server-Code startet hier
 //---------------------------------------------------------
 
+var tmpl *template.Template
+
 // Hauptfunktion des Webservers
 func webServer() {
 	// Wartet bis nötige variablen vom Benutzer gesetzt sind
@@ -23,6 +25,8 @@ func webServer() {
 	// assign assets to handler
 	http.HandleFunc(config.DirectoryWeb, handleRequest)
 	http.Handle("/pics/", http.StripPrefix("/pics/", http.FileServer(http.Dir("./pics"))))
+	tmpl = template.Must(template.ParseFiles("gallery.html"))
+	log.Print("Successfully assigned assets to web-server")
 
 	go http.ListenAndServe(":http", nil)
 	log.Fatal("Web-Server crashed: \n\n", http.ListenAndServeTLS(config.PortWeb,
@@ -36,13 +40,8 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	keys := r.URL.Query()
 	pic, okI := keys["i"]
 	tokstr, okMe := keys["me"]
-	if okI || okMe == false || okI && okMe == true {
+	if ((okI || okMe) == false) || (okI && okMe) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	if len(pic[0]) < 36 || len(tokstr[0]) < 36 {
-		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -68,6 +67,13 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type user struct {
+	Pics []pic
+}
+type pic struct {
+	Name string
+}
+
 func sendGallery(w http.ResponseWriter, tokstr string) {
 	tok, err := uuid.Parse(tokstr)
 	if err != nil {
@@ -83,27 +89,23 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		return
 	}
 
-	var links []string
+	var u user
+
 	for rows.Next() {
 		var nam16 []byte
-		if err := rows.Scan(nam16); err != nil {
+		if err := rows.Scan(&nam16); err != nil {
 			log.Println("scan row error:", err)
 			continue
 		}
+
 		picID, err := uuid.FromBytes(nam16)
 		if err != nil {
 			log.Println("nam16 encode error:", err)
 			continue
 		}
 
-		links = append(links, picID.String())
+		u.Pics = append(u.Pics, pic{Name: picID.String()})
 	}
 
-	w.WriteHeader(http.StatusOK)
-	for _, ele := range links {
-		if _, err := fmt.Fprintf(w, "<img src='pics/"+ele+".png' alt='thepic' style='width:320px;height:235px;'>"); err != nil {
-			log.Println(err)
-			continue
-		}
-	}
+	tmpl.Execute(w, u)
 }
