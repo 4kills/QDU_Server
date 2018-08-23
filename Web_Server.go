@@ -50,8 +50,12 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	showPic(w, pic[0])
+}
+
+func showPic(w http.ResponseWriter, picName string) {
 	// schreibt kompletten inhalt der Bild-Datei in den RAM
-	dat, err := ioutil.ReadFile(filepath.Join(config.DirectoryPics, pic[0]+".png"))
+	dat, err := ioutil.ReadFile(filepath.Join(config.DirectoryPics, picName+".png"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		log.Println(err)
@@ -64,6 +68,19 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(dat); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
+		return
+	}
+
+	pic, err := uuid.Parse(picName)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		log.Println("picName decode error:", err)
+		return
+	}
+
+	_, err = db.Exec("UPDATE pics SET clicks = clicks + 1 WHERE pic_id = ?", pic[:])
+	if err != nil {
+		log.Println("db update(increment clicks) error:", err)
 	}
 }
 
@@ -71,7 +88,9 @@ type user struct {
 	Pics []pic
 }
 type pic struct {
-	Name string
+	Name   string
+	Time   string
+	Clicks int
 }
 
 func sendGallery(w http.ResponseWriter, tokstr string) {
@@ -82,18 +101,27 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		return
 	}
 
-	rows, err := db.Query("SELECT pic_id FROM pics WHERE token = ?", tok[:])
+	rows, err := db.Query(
+		`SELECT pic_id, timestamp, clicks 
+		FROM pics 
+		WHERE token = ? 
+		ORDER BY timestamp`, tok[:])
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		log.Println("db error:", err)
+		log.Println("db select query error:", err)
 		return
 	}
 
 	var u user
 
 	for rows.Next() {
-		var nam16 []byte
-		if err := rows.Scan(&nam16); err != nil {
+		var (
+			nam16 []byte
+			ts    rawTime
+			p     pic
+		)
+
+		if err := rows.Scan(&nam16, &ts, &p.Clicks); err != nil {
 			log.Println("scan row error:", err)
 			continue
 		}
@@ -104,7 +132,11 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 			continue
 		}
 
-		u.Pics = append(u.Pics, pic{Name: picID.String()})
+		temp, _ := ts.unify()
+		p.Name = picID.String()
+		p.Time = temp.String()
+
+		u.Pics = append(u.Pics, p)
 	}
 
 	tmpl.Execute(w, u)

@@ -71,7 +71,7 @@ func main() {
 func initDB() {
 	log.Print("DB-connection established... \n\n")
 	var err error
-	db, err = sql.Open("mysql", "root:@/qdu") // später anpassen
+	db, err = sql.Open("mysql", "4kills:4kills@/qdu") // später anpassen
 	if err != nil {
 		log.Fatal("DB connection error:", err)
 	}
