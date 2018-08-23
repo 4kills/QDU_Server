@@ -134,7 +134,7 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 
 		temp, _ := ts.unify()
 		p.Name = picID.String()
-		p.Time = temp.String()
+		p.Time = temp.UTC().Format("02-01-2006 15:04:05")
 
 		u.Pics = append(u.Pics, p)
 	}
