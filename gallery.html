@@ -1,28 +1,12 @@
 <html>
     <head>
-        
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            .thumbnail{
-                float:left;
-                width: 300px;
-                height: 300px;
-                justify-content:center;
-                background: #727272;
-                background-image: initial;
-                background-color: #262b34;
-            }
-
             .wrapper{
-                display: table;
-                margin: 0px auto;
-            }
-            
-            img {
-                max-width: 100%;
-                max-height: 100%;
-                width: 100%;
-                height: 100%;
-                object-fit:contain;
+                margin: 0 auto;
+
+                width: 1350px;
+                max-width: 90%;
             }
 
             h1{
@@ -37,18 +21,17 @@
             
             .underline {
                 padding: 4px;
-                padding-left: 7px;
-                padding-top: 307px;
                 text-align:left;
-                object-fit: contain;
                 background-color: #262b34;
                 line-height: 120%;
-            
+                bottom: 0;
+                opacity: 0;
+                position: absolute;
+                transition: .5s ease;
             }
             
             dateF {
                 font-size: 10pt;
-                padding-top: 360px;
             }
             
             * {
@@ -56,26 +39,64 @@
                 padding: 0;
                 border: 0;
                 color: #a5a39c;
-                border-top-color: initial;
-                border-right-color: initial;
-                border-bottom-color: initial;
-                border-left-color: initial;
             }
-            
-            .pic {
+
+            #gallery {
+                line-height: 320px;
+                
+                column-count: 4;
+                column-gap: 8px;
+            }
+
+            .thumbnail {
+                margin-bottom: 5px;
+                display: inline-block;
+                width: 100%;
                 position: relative;
-                float: left;
-                margin: 5px;
-                box-shadow: #161656 0px 0px 3px;
-                overflow: hidden;
+                box-sizing: border-box;
+                transition: .5s ease;
+                text-align: center;
+                vertical-align: middle;
+                border: 2px solid #1a1a61;
+                background: #727272;
+                background-color: #262b34;
+            }
+
+            .thumbnail:hover,  .thumbnail:active {
+                transform: scale(1.05);
+            }
+
+            .thumbnail:hover .underline {
+                opacity: 1;
+            }
+
+            .pic {
+                display: inline-block;
+                max-width: 300px;
+                height: auto;
+                max-height: 300px;
+                position: relative;
+                transition: .5s ease;
             }
             
             .unselected {
                 border: 2px solid #1a1a61;
-                border-top-color: #1a1a61;
-                border-right-color: #1a1a61;
-                border-bottom-color: #1a1a61;
-                border-left-color: #1a1a61;
+            }
+
+            @media screen and (max-width: 1400px) {
+                #gallery {
+                    column-count: 3;
+                }
+            }
+            @media screen and (max-width: 1040px) {
+                #gallery {
+                    column-count: 2;
+                }
+            }
+            @media screen and (max-width: 700px) {
+                #gallery {
+                    column-count: 1;
+                }
             }
         </style>
     </head>
@@ -83,19 +104,20 @@
     <body>
         <h1>My QDU-Gallery</h1>
         <div class = "wrapper">
-            {{range .Pics}}
-                <div class= "pic unselected">
-                    <a href="pics/{{.Name}}.png" target= "_blank">
-                        <div class="thumbnail unselected">
-                            <img src="pics/{{.Name}}.png">
+            <div id="gallery">
+                {{range .Pics}}
+                    <a href="pics/{{.Name}}.png" target="_blank">
+                        <div class="thumbnail">
+                            <img class="pic" src="pics/{{.Name}}.png">
+                            <div class="underline">
+                                Views: {{.Clicks}} <br>
+                                <dateF>Date created: {{.Time}}</dateF>
+                            </div>
                         </div>
                     </a>
-                    <div class ="underline unselected">
-                        Views: {{.Clicks}} <br>
-                        <dateF>Date created: {{.Time}}</dateF>
-                    </div>
-                </div>
-            {{end}}
+                {{end}}
+            </div>
+            <div style="height: 100px;"></div>
         </div>
     </body>
 </html>
