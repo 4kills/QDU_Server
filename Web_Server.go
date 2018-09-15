@@ -71,10 +71,8 @@ func showPic(w http.ResponseWriter, picName string) {
 		return
 	}
 
-	pic, err := uuid.Parse(picName)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		log.Println("picName decode error:", err)
+	pic, ok := legacyStrToUUID(w, picName)
+	if !ok {
 		return
 	}
 
@@ -94,10 +92,8 @@ type pic struct {
 }
 
 func sendGallery(w http.ResponseWriter, tokstr string) {
-	tok, err := uuid.Parse(tokstr)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		log.Println("tokstr decode error:", err)
+	tok, ok := legacyStrToUUID(w, tokstr)
+	if !ok {
 		return
 	}
 
@@ -140,4 +136,38 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 	}
 
 	tmpl.Execute(w, u)
+}
+
+func legacyStrToUUID(w http.ResponseWriter, tokstr string) (uuid.UUID, bool) {
+	var tok uuid.UUID
+
+	switch len(tokstr) {
+	case 36:
+		tok, err := uuid.Parse(tokstr)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Println("tokstrlen36 decode error:", err)
+			return tok, false
+		}
+	case 22:
+		b, err := decodeBase64(tokstr)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Println("tokstrlen22 decode error:", err)
+			return tok, false
+		}
+
+		tok, err := uuid.FromBytes(b[:])
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			log.Println("tokstrlen22 decode error:", err)
+			return tok, false
+		}
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println("tokstringlen unavailable, request rejected")
+		return tok, false
+	}
+
+	return tok, true
 }

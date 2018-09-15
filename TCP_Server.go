@@ -69,7 +69,7 @@ func recToken(conn net.Conn) (uuid.UUID, error) {
 		if err != nil {
 			log.Println("rec token error:", err)
 		}
-		return uuid.ParseBytes(dec)
+		return uuid.FromBytes(dec)
 	}
 	return uuid.Parse(string(id))
 }
