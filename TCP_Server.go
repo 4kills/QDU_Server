@@ -37,7 +37,7 @@ func handleClient(conn net.Conn) {
 	// erhält das Bild, abhängig von der Größe
 	buffer := recImage(conn, size)
 	// erschafft einzigartigen Namen für jedes Bild
-	name := createName()
+	imgID, name := createPicID()
 	// erschafft Dateipfad für das Bild
 	path := createPicPath(name)
 	// erstellt die Bilddatei (hier: .png) im angegebenen Pfad
@@ -48,16 +48,11 @@ func handleClient(conn net.Conn) {
 
 	conn.Close()
 
-	addToDB(name, tok)
+	addToDB(imgID, tok)
 }
 
-func addToDB(imgName string, tok uuid.UUID) {
-	imgID, err := uuid.Parse(imgName)
-	if err != nil {
-		log.Println("uuid parse failure:", err)
-	}
-
-	_, err = db.Exec("INSERT INTO pics (pic_id, token) VALUES (?, ?)", imgID[:], tok[:])
+func addToDB(imgID, tok uuid.UUID) {
+	_, err := db.Exec("INSERT INTO pics (pic_id, token) VALUES (?, ?)", imgID[:], tok[:])
 	if err != nil {
 		log.Println("db insert error:", err)
 	}
@@ -65,24 +60,30 @@ func addToDB(imgName string, tok uuid.UUID) {
 
 func recToken(conn net.Conn) (uuid.UUID, error) {
 	id := make([]byte, 36)
-	r, err := conn.Read(id)
+	_, err := conn.Read(id)
 	if err != nil {
 		log.Println("rec token error:", err)
 	}
-	if r < 36 {
-		log.Println("didnt fully receive token:", r)
+	if bytes.Contains(id, []byte{0}) {
+		dec, err := decodeBase64(string(id[:22]))
+		if err != nil {
+			log.Println("rec token error:", err)
+		}
+		return uuid.ParseBytes(dec)
 	}
 	return uuid.Parse(string(id))
 }
 
-func genToken58() uuid.UUID {
+func genToken() uuid.UUID {
 	return uuid.New()
 }
 
 func sendToken(conn net.Conn) {
 
-	id := genToken58()
-	send, err := conn.Write([]byte(id.String()))
+	id := genToken()
+	base64 := encodeBase64(id[:])
+	b := append([]byte(base64), []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}...)
+	send, err := conn.Write(b)
 	if err != nil {
 		log.Println(err)
 	}
@@ -170,8 +171,9 @@ func recImage(conn net.Conn, size int) []byte {
 
 // erstellt einzigartigen Namen für jedes Bild anhand des Timestamps:
 // durch die 10tel-Millisekunden ist ein doppelter Name beinahe unmöglich
-func createName() string {
-	return genToken58().String()
+func createPicID() (uuid.UUID, string) {
+	tok := genToken()
+	return tok, encodeBase64(tok[:])
 }
 
 // schafft Dateipfad anhand des Bildnamens und standard Dateipfad
