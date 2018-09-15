@@ -105,17 +105,17 @@
         <h1>My QDU-Gallery</h1>
         <div class = "wrapper">
             <div id="gallery">
-                {{range .Pics}}
-                    <a href="pics/{{.Name}}.png" target="_blank">
-                        <div class="thumbnail">
-                            <img class="pic" src="pics/{{.Name}}.png">
-                            <div class="underline">
-                                Views: {{.Clicks}} <br>
-                                <dateF>Date created: {{.Time}}</dateF>
-                            </div>
+            {{range .Pics}}
+                <a href="pics/{{.Name}}.png" target="_blank">
+                    <div class="thumbnail">
+                        <img class="pic" src="pics/{{.Name}}.png">
+                        <div class="underline">
+                            Views: {{.Clicks}} <br>
+                            <dateF>Date created: {{.Time}}</dateF>
                         </div>
-                    </a>
-                {{end}}
+                    </div>
+                </a>
+            {{end}}
             </div>
             <div style="height: 100px;"></div>
         </div>

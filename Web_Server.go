@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -108,6 +109,8 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		return
 	}
 
+	log.Println("acc token:", tok[:], tok.String())
+
 	var u user
 
 	for rows.Next() {
@@ -129,8 +132,16 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		}
 
 		temp, _ := ts.unify()
-		p.Name = picID.String()
-		p.Time = temp.UTC().Format("02-01-2006 15:04:05")
+		t := temp.UTC()
+		p.Time = t.Format("02-01-2006 15:04:05")
+		legacyDate, _ := time.Parse("02-01-2006 15:04:05", "15-09-2018 12:00:00")
+		if t.After(legacyDate) {
+			p.Name = encodeBase64(picID[:])
+		} else {
+			p.Name = picID.String()
+		}
+
+		log.Println("picTokenName:", p.Name)
 
 		u.Pics = append(u.Pics, p)
 	}
