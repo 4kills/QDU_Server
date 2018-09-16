@@ -1,17 +1,3 @@
-//---------------------------------------------------------
-// Go/Golang wurde von mir als Server-Sided-Scripting-Language
-// gewählt, weil es mit jedem(!) geläufigen Betriebssystem kompatibel
-// ist. Während c# mit dotnet core 2.x ebenfalls Unterstützung für
-// Linux-arm und Linux-x64 anbietet, fehlt nach wie vor
-// Linux-x86 Unterstützung.
-// Darüber hinaus ist Go extrem effizient, bezüglich Garbage-
-// Collection und Networking. Go ist außerdem eine strukturierte,
-// imperative Programmiersprache mit großartiger Implementierung
-// von Nebenläufigkeit (Co-Routinen) als go's Goroutines.
-//---------------------------------------------------------
-
-// "Namespace" in go; muss Funktion func main(){} enthalten
-// (Haupteinstiegspunkt des Programms)
 package main
 
 // Importiert go-Bibliotheken (c# äquivalent: using System; ...)
@@ -23,20 +9,22 @@ import (
 	"net"
 	"os"
 
+	"github.com/4kills/base64encoding"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Attribute; Gültig über alle Funktionen
-// Asynchron setzbar von jeder Goroutine
-// (c#'s threads, co-routinen, keine sub-routinen)
 var config configuration
 var db *sql.DB
+var enc base64encoding.Encoder64
 
 // Haupteinstiegspunkt des Programms beim Ausführen
 func main() {
 
 	// Startet thread (goroutine) die konstant den Benutzer-Input liest und auswertet
 	readInput()
+
+	// creates encoder for shorter links
+	enc = base64encoding.New()
 
 	// establishes connection with database
 	initDB()

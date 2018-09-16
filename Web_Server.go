@@ -109,8 +109,6 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		return
 	}
 
-	log.Println("acc token:", tok[:], tok.String())
-
 	var u user
 
 	for rows.Next() {
@@ -136,12 +134,10 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		p.Time = t.Format("02-01-2006 15:04:05")
 		legacyDate, _ := time.Parse("02-01-2006 15:04:05", "15-09-2018 12:00:00")
 		if t.After(legacyDate) {
-			p.Name = encodeBase64(picID[:])
+			p.Name = enc.Encode(picID[:])
 		} else {
 			p.Name = picID.String()
 		}
-
-		log.Println("picTokenName:", p.Name)
 
 		u.Pics = append(u.Pics, p)
 	}
@@ -151,24 +147,25 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 
 func legacyStrToUUID(w http.ResponseWriter, tokstr string) (uuid.UUID, bool) {
 	var tok uuid.UUID
+	var err error
 
 	switch len(tokstr) {
 	case 36:
-		tok, err := uuid.Parse(tokstr)
+		tok, err = uuid.Parse(tokstr)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Println("tokstrlen36 decode error:", err)
 			return tok, false
 		}
 	case 22:
-		b, err := decodeBase64(tokstr)
+		b, err := enc.Decode(tokstr)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			log.Println("tokstrlen22 decode error:", err)
 			return tok, false
 		}
 
-		tok, err := uuid.FromBytes(b[:])
+		tok, err = uuid.FromBytes(b[:])
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			log.Println("tokstrlen22 decode error:", err)

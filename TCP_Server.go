@@ -65,7 +65,7 @@ func recToken(conn net.Conn) (uuid.UUID, error) {
 		log.Println("rec token error:", err)
 	}
 	if bytes.Contains(id, []byte{0}) {
-		dec, err := decodeBase64(string(id[:22]))
+		dec, err := enc.Decode(string(id[:22]))
 		if err != nil {
 			log.Println("rec token error:", err)
 		}
@@ -81,7 +81,7 @@ func genToken() uuid.UUID {
 func sendToken(conn net.Conn) {
 
 	id := genToken()
-	base64 := encodeBase64(id[:])
+	base64 := enc.Encode(id[:])
 	b := append([]byte(base64), []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}...)
 	send, err := conn.Write(b)
 	if err != nil {
@@ -173,7 +173,7 @@ func recImage(conn net.Conn, size int) []byte {
 // durch die 10tel-Millisekunden ist ein doppelter Name beinahe unmöglich
 func createPicID() (uuid.UUID, string) {
 	tok := genToken()
-	return tok, encodeBase64(tok[:])
+	return tok, enc.Encode(tok[:])
 }
 
 // schafft Dateipfad anhand des Bildnamens und standard Dateipfad
