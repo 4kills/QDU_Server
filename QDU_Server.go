@@ -1,9 +1,6 @@
 package main
 
-// Importiert go-Bibliotheken (c# äquivalent: using System; ...)
 import (
-	// Standard Bibliotheken
-
 	"database/sql"
 	"log"
 	"net"
@@ -17,7 +14,6 @@ var config configuration
 var db *sql.DB
 var enc base64encoding.Encoder64
 
-// Haupteinstiegspunkt des Programms beim Ausführen
 func main() {
 
 	// Startet thread (goroutine) die konstant den Benutzer-Input liest und auswertet
@@ -32,6 +28,7 @@ func main() {
 
 	// Startet Web-Server, welcher konstant http-Anfragen verarbeitet
 	// Bilder im Browser anzeigt, bei Aufrufen des links
+
 	go webServer()
 
 	log.Print("TCP-Server launched...\n\n")
