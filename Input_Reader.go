@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-// Haupteinstiegsfunktion für das Lesen von User-Input
+// main entrance for reading user input
 func readInput() {
 	log.Print("QDU-Server launched...\n",
-		"Launch servers by entering the respetive settings\n\n")
+		"Launch services by entering the respetive settings\n\n")
 
 	for {
 		if err := manageSettings(); err != nil {
@@ -123,9 +123,7 @@ func createSettingsFile() error {
 	return structToQDNFile(path, config)
 }
 
-// Liest Konsolenzeile und lässt diese auf Befehle überprüfen
 func readLine() (string, error) {
-	// Liest Konsolen-Stream und bricht bei "Enter" ab zu lesen
 	const inputDelimiter = '\n'
 	r := bufio.NewReader(os.Stdin)
 	input, err := r.ReadString(inputDelimiter)
@@ -133,7 +131,7 @@ func readLine() (string, error) {
 		return "", err
 	}
 
-	// Formatiert input
+	// formats input
 	input = strings.Replace(input, "\n", "", -1)
 	input = strings.Trim(input, " ")
 	if runtime.GOOS == "windows" {
@@ -141,12 +139,9 @@ func readLine() (string, error) {
 	}
 	input = strings.Replace(input, " ", "", -1)
 
-	// überprüft auf Befehle
-
 	return input, nil
 }
 
-// Überprüft auf Befehle und setzt die Channel
 func checkCommands(s string) {
 	// TODO: reduce hard coded strings (via export?)
 	switch {

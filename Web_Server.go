@@ -13,14 +13,12 @@ import (
 )
 
 //---------------------------------------------------------
-// Web-Server-Code startet hier
+// Web-Service
 //---------------------------------------------------------
 
 var tmpl *template.Template
 
-// Hauptfunktion des Webservers
 func webServer() {
-	// Wartet bis nötige variablen vom Benutzer gesetzt sind
 	log.Print("Web-Server launched...\n\n")
 
 	// assign assets to handler
@@ -35,9 +33,9 @@ func webServer() {
 		"/etc/letsencrypt/live/haveachin.de/privkey.pem", nil))
 }
 
-// Die Funktion die aufgerufen wird, wenn eine http-Anfrage hereinkommt
+// called upon http requests
 func handleRequest(w http.ResponseWriter, r *http.Request) {
-	// Liest aus der URL durch die GET-Methode das angefragte Bild aus
+	// GET the requested picture
 	keys := r.URL.Query()
 	pic, okI := keys["i"]
 	tokstr, okMe := keys["me"]
@@ -55,7 +53,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func showPic(w http.ResponseWriter, picName string) {
-	// schreibt kompletten inhalt der Bild-Datei in den RAM
+	// writes picture into ram
 	dat, err := ioutil.ReadFile(filepath.Join(config.DirectoryPics, picName+".png"))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -63,7 +61,7 @@ func showPic(w http.ResponseWriter, picName string) {
 		return
 	}
 
-	// Sendet das Bild als Byte-Stream zum Broswer des Benutzers
+	// sends pic as byte stream to browser
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Content-Length", strconv.Itoa(len(dat)))
 	if _, err := w.Write(dat); err != nil {

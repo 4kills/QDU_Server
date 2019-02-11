@@ -16,31 +16,28 @@ var enc base64encoding.Encoder64
 
 func main() {
 
-	// Startet thread (goroutine) die konstant den Benutzer-Input liest und auswertet
+	// starts goroutine listening for user input
 	readInput()
 
-	// creates encoder for shorter links
+	// encoder for shorter links
 	enc = base64encoding.New()
 
 	// establishes connection with database
 	initDB()
 	defer db.Close()
 
-	// Startet Web-Server, welcher konstant http-Anfragen verarbeitet
-	// Bilder im Browser anzeigt, bei Aufrufen des links
-
+	// starts web-server for http requests
 	go webServer()
-
 	log.Print("TCP-Server launched...\n\n")
 
-	// Wartet auf TCP-Verbindungen durch den port, die Bilder auf den Server hochladen
+	// listens for tcp connections through specified port and serves (pic upload, token)
 	ln, err := net.Listen("tcp", config.PortTCP)
 	if err != nil {
 		log.Println("Fatal error:\n", err)
 		os.Exit(1)
 	}
 
-	// Ermöglicht (beliebig) viele TCP-Verbindungen gleichzeitig
+	// allows for any number of concurrent tcp connections
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -48,7 +45,6 @@ func main() {
 			continue
 		}
 
-		// startet neue Goroutine der den verbundenen Benutzer bearbeitet
 		go handleClient(conn)
 	}
 }
@@ -56,8 +52,12 @@ func main() {
 func initDB() {
 	log.Print("DB-connection established... \n\n")
 	var err error
-	db, err = sql.Open("mysql", "4kills:4kills@/qdu") // später anpassen
+	db, err = sql.Open("mysql", "4kills:4kills@/qdu") // TODO: place config
 	if err != nil {
-		log.Fatal("DB connection error:", err)
+		log.Fatal("DB open error:", err)
+	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatal("DB connection error: ping unsuccessful:", err)
 	}
 }
