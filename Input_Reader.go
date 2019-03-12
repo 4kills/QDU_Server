@@ -47,11 +47,9 @@ func manageSettings() error {
 		return err
 	}
 	if s == "0" {
-		// Load
 		return loadSettingsFile()
 	}
 	if s == "1" {
-		// Create
 		return createSettingsFile()
 	}
 	return errors.New("input was not in a correct format")
@@ -92,7 +90,8 @@ func createSettingsFile() error {
 	config.Domain = s
 
 	log.Print("Please enter your web directory\n",
-		"(this will be used for creating the URL that is sent to the connected client):\n\n")
+		"(this will be used for creating the URL that is sent to the connected client),",
+		"you can leave this empty:\n\n")
 	s, err = readLine()
 	if err != nil {
 		return err
@@ -119,6 +118,48 @@ func createSettingsFile() error {
 		return err
 	}
 	config.PortWeb = ":" + s
+
+	log.Print("Please enter the name of your database:\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.DBName = s
+
+	log.Print("Please enter the user (e.g. root, dbUser) connecting to the database\n",
+		"(this setting is optional depending on your DBMS):\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.DBUser = s
+
+	log.Print("Please enter the password for the previously entered user if set:\n",
+		"(this setting is optional depending on your user):\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.DBPw = s
+
+	log.Print("If you want to use TLS/SSL for securing your connection (https),\n",
+		"you may enter your certificates now. Please enter your fullchain file in this format:\n",
+		"[absolute Path]fullchainname.pem e.g.: /etc/letsencrypt/fullchain.pem \n",
+		"(it's save to proceed without entering anything; http will be used):\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.Fullchain = s
+
+	log.Print("Please enter your certificates private key file formatted like:\n",
+		"[absolute Path]privatekeyname.pem e.g.: /etc/letsencrypt/privkey.pem \n",
+		"(don't enter anything if you haven't for the previous setting):\n\n")
+	s, err = readLine()
+	if err != nil {
+		return err
+	}
+	config.Privkey = s
 
 	return structToQDNFile(path, config)
 }

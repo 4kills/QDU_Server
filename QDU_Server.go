@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -52,10 +53,17 @@ func main() {
 func initDB() {
 	log.Print("DB-connection established... \n\n")
 	var err error
-	db, err = sql.Open("mysql", "4kills:4kills@/qdu") // TODO: place config
+
+	if config.DBUser == "" {
+		db, err = sql.Open("mysql", fmt.Sprintf("/%s", config.DBName))
+	} else {
+		db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", config.DBUser, config.DBPw, config.DBName))
+	}
+
 	if err != nil {
 		log.Fatal("DB open error:", err)
 	}
+
 	err = db.Ping()
 	if err != nil {
 		log.Fatal("DB connection error: ping unsuccessful:", err)

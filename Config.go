@@ -14,6 +14,11 @@ type configuration struct {
 	DirectoryWeb  string
 	PortTCP       string
 	PortWeb       string
+	DBUser        string
+	DBPw          string
+	DBName        string
+	Fullchain     string
+	Privkey       string
 }
 
 func structToQDNFile(path string, stru interface{}) error {

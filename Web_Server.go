@@ -27,10 +27,14 @@ func webServer() {
 	tmpl = template.Must(template.ParseFiles("gallery.html"))
 	log.Print("Successfully assigned assets to web-server")
 
-	go http.ListenAndServe(":http", nil)
-	log.Fatal("Web-Server crashed: \n\n", http.ListenAndServeTLS(config.PortWeb,
-		"/etc/letsencrypt/live/haveachin.de/fullchain.pem",
-		"/etc/letsencrypt/live/haveachin.de/privkey.pem", nil))
+	if config.Fullchain != "" {
+		go http.ListenAndServe(":http", nil)
+		log.Fatal("Web-Server crashed: \n\n", http.ListenAndServeTLS(config.PortWeb,
+			config.Fullchain,
+			config.Privkey, nil))
+	} else {
+		log.Fatal("Web-Server crashed: \n\n", http.ListenAndServe(":http", nil))
+	}
 }
 
 // called upon http requests
