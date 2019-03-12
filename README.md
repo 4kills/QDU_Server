@@ -8,6 +8,7 @@
       + "clicks" Type Int Unsigned default 0
     - This database must run on the same system (VM) as your qdu server (improvements comming soon)
   * QDU is depending on several open source go repositories
+  * Windows or Linux as OS
     
 # Setting up your QDU Server
   * As stated above you will need a mysql database. There is an sql file in the example directory that creates the database 
