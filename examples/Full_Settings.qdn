@@ -1,0 +1,13 @@
+configuration
+<
+	Domain=qdu.example.com,
+	DirectoryPics=/var/web/qdu/pics,
+	DirectoryWeb=/ExampleDir,
+	PortTCP=:1337,
+	PortWeb=:80,
+	DBUser=exampleUser,
+	DBPw=examplePw123,
+	DBName=Pics,
+	Fullchain=/etc/certs/live/fullchain.pem,
+	Privkey=/etc/certs/live/privkey.pem,
+>

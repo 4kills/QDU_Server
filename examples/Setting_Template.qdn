@@ -1,0 +1,13 @@
+configuration
+<
+	Domain=[sub.]domain.toplvl,
+	DirectoryPics=[full path to pic dir],
+	DirectoryWeb=[arbitrary http-safe path : optional],
+	PortTCP=:[any unreserved/unused port],
+	PortWeb=:[any unreserved/unused port],
+	DBUser=[user name to DB : optional],
+	DBPw=[pw for DB user : optional],
+	DBName=[name of your picture database],
+	Fullchain=[full path to certificate file : optional],
+	Privkey=[full path to certificate file : optional],
+>
