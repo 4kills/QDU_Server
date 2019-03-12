@@ -7,7 +7,7 @@ configuration
 	PortWeb=:[any unreserved/unused port],
 	DBUser=[user name to DB : optional],
 	DBPw=[pw for DB user : optional],
-	DBName=[name of your picture database],
+	DBName=[name of your mysql database],
 	Fullchain=[full path to certificate file : optional],
 	Privkey=[full path to certificate file : optional],
 >

@@ -7,7 +7,7 @@ configuration
 	PortWeb=:80,
 	DBUser=,
 	DBPw=,
-	DBName=Pics,
+	DBName=qdu,
 	Fullchain=,
 	Privkey=,
 >

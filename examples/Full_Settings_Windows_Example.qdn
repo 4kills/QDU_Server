@@ -7,7 +7,7 @@ configuration
 	PortWeb=:80,
 	DBUser=exampleUser,
 	DBPw=examplePw123,
-	DBName=Pics,
+	DBName=qdu,
 	Fullchain=C:\Users\User\certs1\fullchain.pem,
 	Privkey=C:\certs2\fullchain.pem,
 >
