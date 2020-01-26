@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -17,35 +16,31 @@ import (
 )
 
 var collection *mongo.Collection
-var picID = "picId"
-var token = "token"
-var clicks = "clicks"
+
+// Picture represents a mongodb entry
+type Picture struct {
+	ID     primitive.ObjectID `bson:"_id,omitempty"`
+	Token  uuid.UUID          `bson:"token,omitempty"`
+	PicID  uuid.UUID          `bson:"picId,omitempty"`
+	Clicks int                `bson:"clicks"`
+}
 
 // AddImgToDB adds the image with the specified ids to the mongo db
 func AddImgToDB(imgID, tok uuid.UUID) error {
-	input := bson.M{picID: imgID, token: tok, clicks: 0}
-	return insert(input)
-}
-
-func insert(input bson.M) error {
+	var input Picture
+	input = Picture{PicID: imgID, Token: tok}
+	//input := Picture{PicID: imgID, Token: tok}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err := collection.InsertOne(ctx, input)
 	return err
 }
 
-// Picture represents a picture in a mongodb entry
-type Picture struct {
-	ID     primitive.ObjectID
-	PicID  uuid.UUID
-	Clicks int
-}
-
 // QueryPics returns all the pics associated with the given user token
 func QueryPics(tok uuid.UUID) ([]Picture, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cur, err := collection.Find(ctx, bson.M{token: tok})
+	cur, err := collection.Find(ctx, bson.D{{"token", tok}})
 	if err != nil {
 		return []Picture{}, err
 	}
@@ -61,22 +56,19 @@ func QueryPics(tok uuid.UUID) ([]Picture, error) {
 		}
 		pics = append(pics, pic)
 	}
-	if err := cur.Err(); err != nil {
-		log.Fatal(err)
-	}
-	return pics, nil
+	err = cur.Err()
+	return pics, err
 }
 
 // UpdateClicks increments the click of the pic by the specified amount
 func UpdateClicks(imgID uuid.UUID, amount int) error {
-	filter := bson.M{picID: imgID}
-	opt := options.FindOneAndUpdate().SetUpsert(false)
-	update := bson.M{"$inc": bson.M{clicks: amount}}
+	filter := bson.D{{"picId", imgID}}
+	update := bson.D{{"$inc", bson.D{{"clicks", amount}}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	var updatedDoc bson.M
-	err := collection.FindOneAndUpdate(ctx, filter, update, opt).Decode(&updatedDoc)
+
+	_, err := collection.UpdateOne(ctx, filter, update)
 	if err == mongo.ErrNoDocuments {
 		return nil
 	}
@@ -86,30 +78,42 @@ func UpdateClicks(imgID uuid.UUID, amount int) error {
 	return nil
 }
 
-// InitDB initializes the mongodb
-func InitDB() {
-	mongouri := fmt.Sprintf("mongodb://%s:%s", os.Getenv("dbIP"), os.Getenv("dbPort"))
-	dbName := os.Getenv("dbName")
-	colName := os.Getenv("colName")
+type dbConfig struct {
+	dbIP    string
+	dbPort  string
+	dbName  string
+	colName string
+}
+
+func initDB(conf dbConfig) error {
+	mongouri := fmt.Sprintf("mongodb://%s:%s", conf.dbIP, conf.dbPort)
+	dbName := conf.dbName
+	colName := conf.colName
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongouri))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err = client.Connect(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		log.Fatal("DB connection error: Ping unsuccessful: ", err)
+		return fmt.Errorf("DB connection error: Ping unsuccessful: %s", err)
 	}
 
 	collection = client.Database(dbName).Collection(colName)
+	return nil
+}
+
+// InitDB initializes the mongodb
+func InitDB() error {
+	return initDB(dbConfig{os.Getenv("dbIP"), os.Getenv("dbPort"), os.Getenv("dbName"), os.Getenv("colName")})
 }
