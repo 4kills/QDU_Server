@@ -9,12 +9,9 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/4kills/qdu_server/db"
 	"github.com/google/uuid"
 )
-
-//---------------------------------------------------------
-//TCP-service code
-//---------------------------------------------------------
 
 // called upon user connect
 func handleClient(conn net.Conn) {
@@ -50,9 +47,8 @@ func handleClient(conn net.Conn) {
 }
 
 func addToDB(imgID, tok uuid.UUID) {
-	_, err := db.Exec("INSERT INTO pics (pic_id, token) VALUES (?, ?)", imgID[:], tok[:])
-	if err != nil {
-		log.Println("db insert error:", err)
+	if err := db.AddImgToDB(imgID, tok); err != nil {
+		log.Println("db insertion error:", err)
 	}
 }
 

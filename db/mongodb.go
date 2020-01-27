@@ -29,7 +29,6 @@ type Picture struct {
 func AddImgToDB(imgID, tok uuid.UUID) error {
 	var input Picture
 	input = Picture{PicID: imgID, Token: tok}
-	//input := Picture{PicID: imgID, Token: tok}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err := collection.InsertOne(ctx, input)
