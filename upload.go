@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/4kills/qdu_server/db"
+	"github.com/4kills/QDU_Server/db"
 	"github.com/google/uuid"
 )
 
@@ -163,7 +163,7 @@ func createPicID() (uuid.UUID, string) {
 }
 
 func createPicPath(name string) string {
-	return filepath.Join(config.DirectoryPics, name+".png")
+	return filepath.Join(os.Getenv("picDir"), name+".png")
 }
 
 func draw(buffer []byte, path string) {
@@ -189,12 +189,11 @@ func draw(buffer []byte, path string) {
 }
 
 func createURL(name string) string {
-	// TODO: improve string concatination
-	dir := config.DirectoryWeb
-	if config.DirectoryWeb == "" {
+	dir := os.Getenv("webPath")
+	if os.Getenv("webPath") == "" {
 		dir = "/"
 	}
-	return "https://" + config.Domain + dir + "?i=" + name
+	return "https://" + os.Getenv("domain") + dir + "?i=" + name
 }
 
 func sendURL(conn net.Conn, s string) {
