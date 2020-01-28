@@ -78,14 +78,17 @@ func UpdateClicks(imgID uuid.UUID, amount int) error {
 }
 
 type dbConfig struct {
-	dbIP    string
-	dbPort  string
-	dbName  string
-	colName string
+	dbIP       string
+	dbPort     string
+	dbName     string
+	colName    string
+	dbUsername string
+	dbPassword string
 }
 
 func initDB(conf dbConfig) error {
-	mongouri := fmt.Sprintf("mongodb://%s:%s", conf.dbIP, conf.dbPort)
+	mongouri := fmt.Sprintf("mongodb://%s:%s@%s%s", conf.dbUsername, conf.dbPassword,
+		conf.dbIP, conf.dbPort)
 	dbName := conf.dbName
 	colName := conf.colName
 
@@ -114,5 +117,6 @@ func initDB(conf dbConfig) error {
 
 // InitDB initializes the mongodb
 func InitDB() error {
-	return initDB(dbConfig{os.Getenv("dbIP"), os.Getenv("dbPort"), os.Getenv("dbName"), os.Getenv("colName")})
+	return initDB(dbConfig{os.Getenv("DB_IP"), os.Getenv("PORT_DB"), os.Getenv("DB_NAME"), os.Getenv("COLL_NAME"),
+		os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD")})
 }

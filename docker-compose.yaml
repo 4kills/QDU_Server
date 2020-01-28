@@ -1,0 +1,43 @@
+version: '3' 
+
+services:
+    mongodb:
+        image: mongo:4.2
+        container_name: qdu-db
+        restart: always
+        networks:
+            - qdu
+        environment: 
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: qdubar
+
+    qdu-server:
+        build: .
+        container_name: qdu-server
+        restart: always
+        ports:
+            - 8080:8080
+            - 1337:1337
+        depends_on: 
+            - mongodb
+        networks:
+            - qdu
+        environment: 
+            WEB_PATH: /
+            DOMAIN: qdu.haveachin.de
+            PORT_WEB: :8080
+            PORT_TCP: :1337
+            PORT_DB: :27017
+            DB_IP: mongodb
+            DB_NAME: qdu
+            COLL_NAME: pics
+            DB_USERNAME: root
+            DB_PASSWORD: qdubar
+            PIC_DIR: /var/web/qdu/pics 
+        volumes:
+            - C:\Users\domin\Desktop\teeest:/var/web/qdu/pics 
+
+networks:
+    qdu:
+        driver: bridge
+        
