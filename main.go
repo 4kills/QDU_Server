@@ -8,8 +8,8 @@ import (
 
 	"github.com/4kills/base64encoding"
 
-	"github.com/4kills/QDU_Server/db"
-	"github.com/4kills/QDU_Server/web"
+	"github.com/4kills/qdu_server/db"
+	"github.com/4kills/qdu_server/web"
 )
 
 var enc base64encoding.Encoder64
@@ -28,7 +28,7 @@ func main() {
 	log.Println("Web-Server launched. . .")
 
 	// listens for tcp connections through specified port and serves (pic upload, token)
-	ln, err := net.Listen("tcp", os.Getenv("portTCP"))
+	ln, err := net.Listen("tcp", os.Getenv("PORT_TCP"))
 	if err != nil {
 		log.Fatal("Fatal error: ", err)
 	}

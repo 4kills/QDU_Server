@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/4kills/QDU_Server/db"
+	"github.com/4kills/qdu_server/db"
 	"github.com/google/uuid"
 
 	"github.com/4kills/base64encoding"
@@ -24,8 +24,6 @@ type configuration struct {
 	domain        string
 	portWeb       string
 	directoryPics string
-	fullchain     string
-	privkey       string
 }
 
 // Server starts and maintains the web server to server pics and the gallery
@@ -39,19 +37,12 @@ func Server() {
 	tmpl = template.Must(template.ParseFiles("gallery.html"))
 	log.Print("Successfully assigned assets to web-server")
 
-	if config.fullchain != "" {
-		go http.ListenAndServe(":http", nil)
-		log.Fatal("Web-Server crashed: \n\n", http.ListenAndServeTLS(config.portWeb,
-			config.fullchain,
-			config.privkey, nil))
-	} else {
-		log.Fatal("Web-Server crashed: \n\n", http.ListenAndServe(":http", nil))
-	}
+	log.Fatal("Web-Server crashed: \n\n", http.ListenAndServe(config.portWeb, nil))
 }
 
 func setConfig() {
-	config = configuration{os.Getenv("webPath"), os.Getenv("domain"), os.Getenv("portWeb"),
-		os.Getenv("picDir"), os.Getenv("fullchain"), os.Getenv("privkey")}
+	config = configuration{os.Getenv("WEB_PATH"), os.Getenv("DOMAIN"), os.Getenv("PORT_WEB"),
+		os.Getenv("PIC_DIR")}
 }
 
 // called upon http requests
