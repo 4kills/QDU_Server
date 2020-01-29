@@ -16,7 +16,7 @@ services:
         container_name: qdu-server
         restart: always
         ports:
-            - 8080:8080
+            - 80:8080
             - 1337:1337
         depends_on: 
             - mongodb
@@ -24,7 +24,7 @@ services:
             - qdu
         environment: 
             WEB_PATH: /
-            DOMAIN: qdu.haveachin.de
+            DOMAIN: qdu.4kills.net
             PORT_WEB: :8080
             PORT_TCP: :1337
             PORT_DB: :27017
@@ -35,7 +35,7 @@ services:
             DB_PASSWORD: qdubar
             PIC_DIR: /var/web/qdu/pics 
         volumes:
-            - C:\Users\domin\Desktop\teeest:/var/web/qdu/pics 
+            - /var/web/qdu/pics:/var/web/qdu/pics 
 
 networks:
     qdu:
