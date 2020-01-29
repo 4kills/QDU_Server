@@ -33,7 +33,7 @@ func Server() {
 	enc = base64encoding.New()
 	// assign assets to handler
 	http.HandleFunc(config.directoryWeb, handleRequest)
-	http.Handle("/pics/", http.StripPrefix("/pics/", http.FileServer(http.Dir("./pics"))))
+	http.Handle("/pics/", http.StripPrefix("/pics/", http.FileServer(http.Dir(config.directoryPics))))
 	tmpl = template.Must(template.ParseFiles("gallery.html"))
 	log.Print("Successfully assigned assets to web-server")
 
@@ -136,7 +136,7 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 
 	var u user
 	for _, p := range pics {
-		img := pic{p.PicID.String(), p.ID.Timestamp().UTC().Format("02-01-2006 15:04:05"), p.Clicks}
+		img := pic{enc.Encode(p.PicID[:]), p.ID.Timestamp().UTC().Format("02-01-2006 15:04:05"), p.Clicks}
 		u.Pics = append(u.Pics, img)
 	}
 
