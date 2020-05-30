@@ -6,8 +6,6 @@ import (
 	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,14 +14,6 @@ import (
 )
 
 var collection *mongo.Collection
-
-// Picture represents a mongodb entry
-type Picture struct {
-	ID     primitive.ObjectID `bson:"_id,omitempty"`
-	Token  uuid.UUID          `bson:"token,omitempty"`
-	PicID  uuid.UUID          `bson:"picId,omitempty"`
-	Clicks int                `bson:"clicks"`
-}
 
 // AddImgToDB adds the image with the specified ids to the mongo db
 func AddImgToDB(imgID, tok uuid.UUID) error {
