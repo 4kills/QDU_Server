@@ -13,23 +13,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var collection *mongo.Collection
+type mongoDB struct {
+	collection *mongo.Collection
+	config     dbConfig
+}
 
 // AddImgToDB adds the image with the specified ids to the mongo db
-func AddImgToDB(imgID, tok uuid.UUID) error {
+func (db mongoDB) AddImgToDB(imgID, tok uuid.UUID) error {
 	var input mongoPicture
-	input = mongoPicture{PicIDInternal: imgID, TokenInternal: tok}
+	input = mongoPicture{PicID: imgID, Token: tok}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	_, err := collection.InsertOne(ctx, input)
+	_, err := db.collection.InsertOne(ctx, input)
 	return err
 }
 
 // QueryPics returns all the pics associated with the given user token
-func QueryPics(tok uuid.UUID) ([]Picture, error) {
+func (db mongoDB) QueryPics(tok uuid.UUID) ([]Picture, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cur, err := collection.Find(ctx, bson.D{{"token", tok}})
+	cur, err := db.collection.Find(ctx, bson.D{{"token", tok}})
 	if err != nil {
 		return []Picture{}, err
 	}
@@ -50,14 +53,14 @@ func QueryPics(tok uuid.UUID) ([]Picture, error) {
 }
 
 // UpdateClicks increments the click of the pic by the specified amount
-func UpdateClicks(imgID uuid.UUID, amount int) error {
+func (db mongoDB) UpdateClicks(imgID uuid.UUID, amount int) error {
 	filter := bson.D{{"picId", imgID}}
 	update := bson.D{{"$inc", bson.D{{"clicks", amount}}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := collection.UpdateOne(ctx, filter, update)
+	_, err := db.collection.UpdateOne(ctx, filter, update)
 	if err == mongo.ErrNoDocuments {
 		return nil
 	}
@@ -67,16 +70,7 @@ func UpdateClicks(imgID uuid.UUID, amount int) error {
 	return nil
 }
 
-type dbConfig struct {
-	dbIP       string
-	dbPort     string
-	dbName     string
-	colName    string
-	dbUsername string
-	dbPassword string
-}
-
-func initDB(conf dbConfig) error {
+func (db mongoDB) init(conf dbConfig) error {
 	mongouri := fmt.Sprintf("mongodb://%s:%s@%s%s", conf.dbUsername, conf.dbPassword,
 		conf.dbIP, conf.dbPort)
 	dbName := conf.dbName
@@ -101,12 +95,13 @@ func initDB(conf dbConfig) error {
 		return fmt.Errorf("DB connection error: Ping unsuccessful: %s", err)
 	}
 
-	collection = client.Database(dbName).Collection(colName)
+	db.collection = client.Database(dbName).Collection(colName)
+	db.config = conf
 	return nil
 }
 
 // InitDB initializes the mongodb
-func InitDB() error {
-	return initDB(dbConfig{os.Getenv("DB_IP"), os.Getenv("PORT_DB"), os.Getenv("DB_NAME"), os.Getenv("COLL_NAME"),
+func (db mongoDB) Init() error {
+	return db.init(dbConfig{os.Getenv("DB_IP"), os.Getenv("PORT_DB"), os.Getenv("DB_NAME"), os.Getenv("COLL_NAME"),
 		os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD")})
 }
