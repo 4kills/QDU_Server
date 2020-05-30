@@ -17,8 +17,8 @@ var collection *mongo.Collection
 
 // AddImgToDB adds the image with the specified ids to the mongo db
 func AddImgToDB(imgID, tok uuid.UUID) error {
-	var input Picture
-	input = Picture{PicID: imgID, Token: tok}
+	var input mongoPicture
+	input = mongoPicture{PicIDInternal: imgID, TokenInternal: tok}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err := collection.InsertOne(ctx, input)
@@ -38,7 +38,7 @@ func QueryPics(tok uuid.UUID) ([]Picture, error) {
 	var pics []Picture
 
 	for cur.Next(ctx) {
-		var pic Picture
+		var pic mongoPicture
 		err := cur.Decode(&pic)
 		if err != nil {
 			return []Picture{}, err
