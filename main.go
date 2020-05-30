@@ -13,18 +13,20 @@ import (
 )
 
 var enc base64encoding.Encoder64
+var database db.Database
 
 func main() {
 	enc = base64encoding.New()
 
+	database = db.New()
 	// establishes connection with database
-	if err := db.InitDB(); err != nil {
+	if err := database.Init(); err != nil {
 		log.Fatal(fmt.Errorf("DB connection error: %s", err))
 	}
 	log.Println("Database connection established. . .")
 
 	// starts web-server for http requests
-	go web.Server()
+	go web.Server(database)
 	log.Println("Web-Server launched. . .")
 
 	// listens for tcp connections through specified port and serves (pic upload, token)

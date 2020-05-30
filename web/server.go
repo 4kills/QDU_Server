@@ -9,15 +9,16 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/4kills/qdu_server/db"
 	"github.com/google/uuid"
 
 	"github.com/4kills/base64encoding"
+	"github.com/4kills/qdu_server/db"
 )
 
 var enc base64encoding.Encoder64
 var tmpl *template.Template
 var config configuration
+var database db.Database
 
 type configuration struct {
 	directoryWeb  string
@@ -27,7 +28,8 @@ type configuration struct {
 }
 
 // Server starts and maintains the web server to server pics and the gallery
-func Server() {
+func Server(db db.Database) {
+	database = db
 	setConfig()
 	// shortens links
 	enc = base64encoding.New()
@@ -89,7 +91,7 @@ func showPic(w http.ResponseWriter, picName string) {
 		return
 	}
 
-	if err := db.UpdateClicks(pic, 1); err != nil {
+	if err := database.UpdateClicks(pic, 1); err != nil {
 		log.Println("db update(increment clicks) error:", err)
 	}
 }
@@ -127,7 +129,7 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 		return
 	}
 
-	pics, err := db.QueryPics(tok)
+	pics, err := database.QueryPics(tok)
 	if err != nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		log.Println("db select query error: ", err)
@@ -136,7 +138,9 @@ func sendGallery(w http.ResponseWriter, tokstr string) {
 
 	var u user
 	for _, p := range pics {
-		img := pic{enc.Encode(p.PicID[:]), p.ID.Timestamp().UTC().Format("02-01-2006 15:04:05"), p.Clicks}
+		picID := p.PictureID()
+		time := p.Timestamp().UTC().Format("02-01-2006 15:04:05")
+		img := pic{enc.Encode(picID[:]), time, p.PictureClicks()}
 		u.Pics = append(u.Pics, img)
 	}
 

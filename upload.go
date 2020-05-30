@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/4kills/qdu_server/db"
 	"github.com/google/uuid"
 )
 
@@ -47,7 +46,7 @@ func handleClient(conn net.Conn) {
 }
 
 func addToDB(imgID, tok uuid.UUID) {
-	if err := db.AddImgToDB(imgID, tok); err != nil {
+	if err := database.AddImgToDB(imgID, tok); err != nil {
 		log.Println("db insertion error:", err)
 	}
 }
