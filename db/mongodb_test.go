@@ -9,7 +9,8 @@ import (
 )
 
 func TestDB(t *testing.T) {
-	err := initDB(dbConfig{dbIP: "192.168.178.25", dbPort: "27017", dbName: "QDU", colName: "pics"})
+	db := mongoDB{}
+	err := db.init(dbConfig{dbIP: "192.168.178.25", dbPort: "27017", dbName: "QDU", colName: "pics"})
 	if err != nil {
 		log.Println(err)
 		t.Fail()
@@ -17,19 +18,19 @@ func TestDB(t *testing.T) {
 
 	img, _ := uuid.FromBytes([]byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF})
 	tok, _ := uuid.FromBytes([]byte{0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1})
-	err = AddImgToDB(img, tok)
+	err = db.AddImgToDB(img, tok)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
 	}
 
-	err = UpdateClicks(img, 1)
+	err = db.UpdateClicks(img, 1)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
 	}
 
-	pics, err := QueryPics(tok)
+	pics, err := db.QueryPics(tok)
 	if err != nil {
 		log.Println(err)
 		t.Fail()
