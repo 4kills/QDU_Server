@@ -20,7 +20,7 @@ Especially the 'environment' section under 'qdu-server' should be interesting fo
 You will need to enter your **domain** and the **directory** for saving the pictures. 
 Please also adjust the latter under 'volumes'.
 
-## Starting your QDU Server
+## Starting up your QDU Server
 
 To start up your very own QDU Server just download this repository and use the docker-compose. 
 This will start up a go-builder container that will compile and build the executable and after that a container actually containing and executing the executable
