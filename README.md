@@ -1,5 +1,7 @@
 # QDU Server
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 This server allows you to upload pictures to it, using a no-registration account system. 
 The server will return a URL to the client with which they can view the uploaded picture online. The link may be shared. 
 The clients can also view all of their all-time uploads and see the likes of each picture individually in a gallery. 
