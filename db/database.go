@@ -24,7 +24,7 @@ type Database interface {
 
 // New returns the current implementation of a Database
 func New() Database {
-	return mongoDB{}
+	return &mongoDB{}
 }
 
 type dbConfig struct {

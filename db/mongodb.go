@@ -70,7 +70,7 @@ func (db mongoDB) UpdateClicks(imgID uuid.UUID, amount int) error {
 	return nil
 }
 
-func (db mongoDB) init(conf dbConfig) error {
+func (db *mongoDB) init(conf dbConfig) error {
 	mongouri := fmt.Sprintf("mongodb://%s:%s@%s%s", conf.dbUsername, conf.dbPassword,
 		conf.dbIP, conf.dbPort)
 	dbName := conf.dbName
@@ -101,7 +101,7 @@ func (db mongoDB) init(conf dbConfig) error {
 }
 
 // InitDB initializes the mongodb
-func (db mongoDB) Init() error {
+func (db *mongoDB) Init() error {
 	return db.init(dbConfig{os.Getenv("DB_IP"), os.Getenv("PORT_DB"), os.Getenv("DB_NAME"), os.Getenv("COLL_NAME"),
 		os.Getenv("DB_USERNAME"), os.Getenv("DB_PASSWORD")})
 }
